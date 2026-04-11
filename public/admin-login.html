@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>관리자 로그인</title>
+  <link rel="stylesheet" href="style.css?v=3" />
+</head>
+<body>
+  <div class="stars" id="stars"></div>
+  <header class="header">
+    <div class="header-inner">
+      <div class="title-group">
+        <span class="crown">🔒</span>
+        <h1>관리자 로그인</h1>
+        <span class="crown">🔒</span>
+      </div>
+      <p class="subtitle">ADMIN_PASSWORD로 로그인해야 관리자 페이지에 접근할 수 있습니다.</p>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="section-card" style="max-width:480px; margin:0 auto;">
+      <h2>비밀번호 입력</h2>
+      <form id="login-form" class="form-grid">
+        <label>
+          관리자 비밀번호
+          <input name="password" class="text-input" type="password" required autocomplete="current-password" />
+        </label>
+        <button type="submit" class="primary-btn">로그인</button>
+      </form>
+      <p id="login-message" class="field-note"></p>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = event.target;
+      const password = form.password.value.trim();
+      const message = document.getElementById('login-message');
+      message.textContent = '로그인 중...';
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.error || '로그인 실패');
+        window.location.href = '/admin';
+      } catch (err) {
+        message.textContent = err.message;
+        message.className = 'field-note error-text';
+      }
+    });
+  </script>
+</body>
+</html>

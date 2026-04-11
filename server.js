@@ -4,6 +4,7 @@ const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const crypto = require('crypto');
 const { Pool } = require('pg');
 
 const app = express();
@@ -13,6 +14,9 @@ const REDASH_API_URL = process.env.REDASH_API_URL;
 const REDASH_API_KEY = process.env.REDASH_API_KEY;
 const REDASH_QUERY_ID = process.env.REDASH_QUERY_ID;
 const DATABASE_URL = process.env.DATABASE_URL;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const ADMIN_COOKIE_NAME = 'admin_auth_token';
+const ADMIN_AUTH_TOKEN = ADMIN_PASSWORD ? crypto.createHash('sha256').update(ADMIN_PASSWORD).digest('hex') : null;
 
 const pool = DATABASE_URL ? new Pool({
   connectionString: DATABASE_URL,
@@ -34,6 +38,10 @@ const upload = multer({ storage });
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+  if (req.path === '/admin.html') return res.status(404).end();
+  next();
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
 if (!REDASH_API_URL || !REDASH_API_KEY || !REDASH_QUERY_ID) {
@@ -119,6 +127,35 @@ async function initDb() {
       reviewer TEXT
     );
   `);
+}
+
+function parseCookies(req) {
+  const cookieHeader = req.headers.cookie || '';
+  return cookieHeader.split(';').reduce((acc, cookie) => {
+    const [name, value] = cookie.split('=').map(s => s.trim());
+    if (!name) return acc;
+    acc[name] = value;
+    return acc;
+  }, {});
+}
+
+function isAdminAuthenticated(req) {
+  if (!ADMIN_AUTH_TOKEN) return false;
+  const cookies = parseCookies(req);
+  return cookies[ADMIN_COOKIE_NAME] === ADMIN_AUTH_TOKEN;
+}
+
+function requireAdmin(req, res, next) {
+  if (!ADMIN_AUTH_TOKEN) {
+    return res.status(503).json({ success: false, error: 'ADMIN_PASSWORD is not configured' });
+  }
+  if (!isAdminAuthenticated(req)) {
+    if (req.path === '/admin' || req.path === '/admin/login') {
+      return res.redirect('/admin/login');
+    }
+    return res.status(401).json({ success: false, error: 'Unauthorized' });
+  }
+  next();
 }
 
 function normalizeRow(row, index) {
@@ -311,6 +348,23 @@ app.get('/api/missions', async (req, res) => {
   res.json({ success:true, data: result.rows });
 });
 
+app.post('/api/admin/login', (req, res) => {
+  if (!ADMIN_AUTH_TOKEN) return res.status(503).json({ success: false, error: 'ADMIN_PASSWORD is not configured' });
+  const password = String(req.body.password || '');
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ success: false, error: '비밀번호가 틀렸습니다.' });
+  }
+  res.setHeader('Set-Cookie', `${ADMIN_COOKIE_NAME}=${ADMIN_AUTH_TOKEN}; HttpOnly; Path=/; Max-Age=86400`);
+  res.json({ success:true });
+});
+
+app.post('/api/admin/logout', (req, res) => {
+  res.setHeader('Set-Cookie', `${ADMIN_COOKIE_NAME}=deleted; HttpOnly; Path=/; Max-Age=0`);
+  res.json({ success:true });
+});
+
+app.use('/api/admin', requireAdmin);
+
 app.post('/api/mission-submissions', upload.single('receipt'), async (req, res) => {
   if (!pool) return res.status(503).json({ success: false, error:'Database not configured' });
   const studentName = String(req.body.studentName || '').trim();
@@ -403,7 +457,13 @@ app.post('/api/admin/missions', async (req, res) => {
   res.json({ success:true });
 });
 
+app.get('/admin/login', (req, res) => {
+  if (isAdminAuthenticated(req)) return res.redirect('/admin');
+  res.sendFile(path.join(__dirname, 'public', 'admin-login.html'));
+});
+
 app.get('/admin', (req, res) => {
+  if (!isAdminAuthenticated(req)) return res.redirect('/admin/login');
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
