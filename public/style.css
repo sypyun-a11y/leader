@@ -130,8 +130,19 @@ h1 {
 .podium-card.rank-1 {
   flex: 0 0 220px;
   border-color: var(--gold);
-  box-shadow: var(--glow-gold), var(--shadow);
-  background: linear-gradient(135deg, #1a2235, #2d2000);
+  box-shadow: 0 0 24px rgba(255, 133, 27, 0.2), var(--shadow);
+  background: linear-gradient(135deg, #ff9f0a, #ff6b00) !important;
+  color: #ffffff !important;
+}
+.podium-card.rank-1::before,
+.podium-card.rank-1::after {
+  display: none !important;
+}
+.podium-card.rank-1 .podium-medal,
+.podium-card.rank-1 .podium-name,
+.podium-card.rank-1 .podium-rank-num,
+.podium-card.rank-1 .podium-progress-label {
+  color: #ffffff !important;
 }
 .podium-card.rank-2 {
   border-color: var(--silver);
