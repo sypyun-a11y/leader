@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>관리자 - 오리 리더보드</title>
+  <link rel="stylesheet" href="style.css?v=3" />
+</head>
+<body>
+  <div class="stars" id="stars"></div>
+  <header class="header">
+    <div class="header-inner">
+      <div class="title-group">
+        <span class="crown">🛠️</span>
+        <h1>관리자 대시보드</h1>
+        <span class="crown">🛠️</span>
+      </div>
+      <p class="subtitle">수익 및 미션 제출을 승인 또는 거부하세요.</p>
+    </div>
+    <div class="meta-bar">
+      <a class="admin-link" href="/">메인 페이지로</a>
+    </div>
+  </header>
+
+  <main class="main admin-grid">
+    <section class="section-card">
+      <h2>미션 등록</h2>
+      <form id="new-mission-form" class="form-grid">
+        <label>
+          제목
+          <input name="title" class="text-input" type="text" required />
+        </label>
+        <label>
+          설명
+          <textarea name="description" class="textarea"></textarea>
+        </label>
+        <label>
+          주차
+          <input name="week" class="text-input" type="number" min="1" placeholder="선택사항" />
+        </label>
+        <button type="submit" class="primary-btn">미션 등록</button>
+      </form>
+      <div id="mission-create-result" class="field-note"></div>
+    </section>
+
+    <section class="section-card">
+      <h2>수익 제출 관리</h2>
+      <div id="revenue-admin-list" class="admin-table">
+        <p class="field-note">수익 제출 목록 불러오는 중...</p>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <h2>미션 제출 관리</h2>
+      <div id="mission-admin-list" class="admin-table">
+        <p class="field-note">미션 제출 목록 불러오는 중...</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function esc(str) {
+      return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function formatTime(ts) {
+      if (!ts) return '-';
+      return new Date(ts).toLocaleString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    async function loadRevenueAdmin() {
+      const container = document.getElementById('revenue-admin-list');
+      container.innerHTML = '<p class="field-note">불러오는 중...</p>';
+      try {
+        const res = await fetch('/api/admin/revenue-submissions');
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.error || '불러오기 실패');
+        const rows = json.data || [];
+        if (!rows.length) {
+          container.innerHTML = '<p class="field-note">수익 제출이 없습니다.</p>';
+          return;
+        }
+        container.innerHTML = rows.map(item => `
+          <div class="admin-row">
+            <div>
+              <div><strong>${esc(item.student_name)}</strong> - ${Number(item.amount).toLocaleString()}원</div>
+              <div class="field-note">상태: <span class="status-pill status-${esc(item.status)}">${esc(item.status)}</span></div>
+              <div class="field-note">제출: ${formatTime(item.submitted_at)}</div>
+              ${item.image_path ? `<div class="field-note">증빙: <a href="/${esc(item.image_path)}" target="_blank">보기</a></div>` : ''}
+            </div>
+            <div class="admin-actions">
+              <button class="secondary-btn" onclick="reviewRevenue(${item.id}, 'approved')">승인</button>
+              <button class="secondary-btn" onclick="reviewRevenue(${item.id}, 'rejected')">거부</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        container.innerHTML = `<p class="field-note error-text">${esc(err.message)}</p>`;
+      }
+    }
+    async function loadMissionAdmin() {
+      const container = document.getElementById('mission-admin-list');
+      container.innerHTML = '<p class="field-note">불러오는 중...</p>';
+      try {
+        const res = await fetch('/api/admin/mission-submissions');
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.error || '불러오기 실패');
+        const rows = json.data || [];
+        if (!rows.length) {
+          container.innerHTML = '<p class="field-note">미션 제출이 없습니다.</p>';
+          return;
+        }
+        container.innerHTML = rows.map(item => `
+          <div class="admin-row">
+            <div>
+              <div><strong>${esc(item.student_name)}</strong> - ${esc(item.mission_title || '미션')}</div>
+              <div class="field-note">상태: <span class="status-pill status-${esc(item.status)}">${esc(item.status)}</span></div>
+              <div class="field-note">제출: ${formatTime(item.submitted_at)}</div>
+              <p class="field-note">${esc(item.notes || '-')}</p>
+            </div>
+            <div class="admin-actions">
+              <button class="secondary-btn" onclick="reviewMission(${item.id}, 'approved')">승인</button>
+              <button class="secondary-btn" onclick="reviewMission(${item.id}, 'rejected')">거부</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        container.innerHTML = `<p class="field-note error-text">${esc(err.message)}</p>`;
+      }
+    }
+    async function reviewRevenue(id, status) {
+      await fetch(`/api/admin/revenue-submissions/${id}/${status}`, { method: 'POST' });
+      loadRevenueAdmin();
+    }
+    async function reviewMission(id, status) {
+      await fetch(`/api/admin/mission-submissions/${id}/${status}`, { method: 'POST' });
+      loadMissionAdmin();
+    }
+    document.getElementById('new-mission-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = event.target;
+      const data = { title: form.title.value.trim(), description: form.description.value.trim(), week: form.week.value.trim() };
+      const res = await fetch('/api/admin/missions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const json = await res.json();
+      const result = document.getElementById('mission-create-result');
+      if (!res.ok || !json.success) {
+        result.textContent = json.error || '미션 등록에 실패했습니다.';
+        result.className = 'field-note error-text';
+        return;
+      }
+      form.reset();
+      result.textContent = '미션이 등록되었습니다.';
+      result.className = 'field-note';
+      loadMissions();
+    });
+    async function loadMissions() {
+      try {
+        await fetch('/api/admin/missions');
+      } catch (err) {
+        console.warn(err);
+      }
+    }
+    loadRevenueAdmin();
+    loadMissionAdmin();
+  </script>
+</body>
+</html>

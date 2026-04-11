@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>숏폼3기 수강생 랭킹보드</title>
-  <link rel="stylesheet" href="style.css?v=2" />
+  <meta name="description" content="숏폼3기 수강생 진도율과 수익 인증을 함께 확인하세요." />
+  <title>숏폼3기 오리 리더보드</title>
+  <link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
   <div class="stars" id="stars"></div>
@@ -13,40 +14,119 @@
     <div class="header-inner">
       <div class="title-group">
         <span class="crown">👑</span>
-        <h1>숏폼3기 수강생 랭킹보드</h1>
+        <h1>숏폼3기 오리 리더보드</h1>
         <span class="crown">👑</span>
       </div>
-      <p class="subtitle">숏폼3기 수강생들의 현재 진도 현황을 한눈에 확인하세요.</p>
+      <p class="subtitle">진도율과 수익 인증을 함께 확인하고 관리하는 대시보드.</p>
     </div>
     <div class="meta-bar">
       <span id="last-updated">데이터 로딩 중...</span>
       <button id="refresh-btn" class="refresh-btn" onclick="loadLeaderboard(true)">
         <span class="refresh-icon">↻</span> 새로고침
       </button>
+      <a class="admin-link" href="/admin">관리자 페이지</a>
     </div>
   </header>
 
   <main class="main">
-    <!-- 상위 3위 포디움 -->
-    <section class="podium-section" id="podium-section">
-      <div class="podium-wrapper" id="podium"></div>
+    <div class="tabs" role="tablist">
+      <button class="tab-button active" data-tab="progress" aria-selected="true">진도율</button>
+      <button class="tab-button" data-tab="revenue" aria-selected="false">수익 인증</button>
+    </div>
+
+    <section class="tab-panel active" id="tab-progress">
+      <section class="podium-section" id="podium-section">
+        <div class="podium-wrapper" id="podium"></div>
+      </section>
+      <section class="table-section">
+        <div class="table-header-row">
+          <span class="th rank-col">#</span>
+          <span class="th name-col">이름</span>
+          <span class="th river-col">진도율</span>
+          <span class="th score-col">점수</span>
+          <span class="th change-col">변동</span>
+        </div>
+        <div id="leaderboard-list" class="leaderboard-list">
+          <div class="loading">
+            <div class="duck-loading">🦆</div>
+            <p>데이터를 불러오는 중...</p>
+          </div>
+        </div>
+      </section>
     </section>
 
-    <!-- 전체 랭킹 테이블 -->
-    <section class="table-section">
-      <div class="table-header-row">
-        <span class="th rank-col">#</span>
-        <span class="th name-col">이름</span>
-        <span class="th river-col">진도율 (강 건너기)</span>
-        <span class="th score-col">점수</span>
-        <span class="th change-col">변동</span>
+    <section class="tab-panel" id="tab-revenue">
+      <div class="section-grid">
+        <section class="section-card">
+          <h2>나의 인증 현황</h2>
+          <div class="summary-row">
+            <input id="summary-name-input" class="text-input" type="text" placeholder="이름을 입력하세요" />
+            <button id="summary-search-btn" class="primary-btn">조회</button>
+          </div>
+          <div id="summary-output" class="summary-output">
+            <p>이름을 입력하고 조회 버튼을 눌러 주세요.</p>
+          </div>
+        </section>
+        <section class="section-card">
+          <h2>수익 인증 제출</h2>
+          <form id="earnings-form" class="form-grid">
+            <label>
+              이름
+              <input name="studentName" class="text-input" type="text" required />
+            </label>
+            <label>
+              금액
+              <input name="amount" class="text-input" type="number" min="0" placeholder="원" required />
+            </label>
+            <label>
+              영수증 첨부
+              <input name="receipt" class="file-input" type="file" accept="image/*" />
+            </label>
+            <button type="submit" class="primary-btn">제출하기</button>
+            <p class="field-note">제출 후 관리자가 승인하면 인증이 반영됩니다.</p>
+          </form>
+        </section>
       </div>
-      <div id="leaderboard-list" class="leaderboard-list">
-        <div class="loading">
-          <div class="duck-loading">🦆</div>
-          <p>데이터를 불러오는 중...</p>
-        </div>
+
+      <div class="section-grid">
+        <section class="section-card">
+          <h2>미션 인증 제출</h2>
+          <form id="mission-form" class="form-grid">
+            <label>
+              이름
+              <input name="studentName" class="text-input" type="text" required />
+            </label>
+            <label>
+              미션 선택
+              <select name="missionId" class="text-input" required>
+                <option value="">미션을 선택하세요</option>
+              </select>
+            </label>
+            <label>
+              설명
+              <textarea name="notes" class="textarea" placeholder="중요 포인트를 적어주세요"></textarea>
+            </label>
+            <label>
+              증빙 이미지
+              <input name="receipt" class="file-input" type="file" accept="image/*" />
+            </label>
+            <button type="submit" class="primary-btn">미션 제출</button>
+            <p class="field-note">미션은 관리자 승인 이후 인정됩니다.</p>
+          </form>
+        </section>
+        <section class="section-card">
+          <h2>미션 목록</h2>
+          <div id="mission-list" class="mission-list">
+            <p class="field-note">미션 목록을 불러오는 중입니다...</p>
+          </div>
+        </section>
       </div>
+
+      <section class="section-card">
+        <h2>제출 내역</h2>
+        <div id="submission-list" class="submission-list"></div>
+        <div id="mission-submission-list" class="submission-list"></div>
+      </section>
     </section>
   </main>
 

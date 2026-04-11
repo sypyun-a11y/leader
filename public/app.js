@@ -1,14 +1,14 @@
 'use strict';
 
-// ── 별 배경 생성 ──────────────────────────────────────────────
 (function createStars() {
   const container = document.getElementById('stars');
+  if (!container) return;
   for (let i = 0; i < 120; i++) {
     const star = document.createElement('div');
     star.className = 'star';
     star.style.cssText = `
       left: ${Math.random() * 100}%;
-      top:  ${Math.random() * 100}%;
+      top: ${Math.random() * 100}%;
       --d: ${(Math.random() * 3 + 2).toFixed(1)}s;
       --max-op: ${(Math.random() * 0.6 + 0.2).toFixed(2)};
       animation-delay: ${(Math.random() * 4).toFixed(1)}s;
@@ -17,32 +17,14 @@
   }
 })();
 
-// ── 포지션 → CSS 클래스 매핑 ─────────────────────────────────
-const POSITION_CLASS = {
-  'frontend': 'pos-fe', 'fe': 'pos-fe', '프론트': 'pos-fe', '프론트엔드': 'pos-fe',
-  'backend':  'pos-be', 'be': 'pos-be', '백엔드': 'pos-be',
-  'ai':       'pos-ai', '인공지능': 'pos-ai', 'ml': 'pos-ai', 'data': 'pos-ai', '데이터': 'pos-ai',
-  'devops':   'pos-de', 'de': 'pos-de', 'cloud': 'pos-de', '클라우드': 'pos-de',
-};
-function posClass(pos) {
-  const key = (pos || '').toLowerCase().replace(/\s+/g, '');
-  return POSITION_CLASS[key] || 'pos-default';
-}
-
-// ── 순위 메달 ─────────────────────────────────────────────────
-const MEDALS  = ['🥇', '🥈', '🥉'];
-const BADGES  = ['gold', 'silver', 'bronze'];
-
-// ── 오리 이모지 목록 (다양성) ────────────────────────────────
+const MEDALS = ['🥇', '🥈', '🥉'];
+const BADGES = ['gold', 'silver', 'bronze'];
 const DUCKS = ['🦆', '🐥', '🐤', '🐣'];
 function duckFor(index) { return DUCKS[index % DUCKS.length]; }
 
-// ── 강 건너기 컴포넌트 HTML ──────────────────────────────────
 function riverHTML(progress, rowIndex) {
-  // 오리는 0~90% 범위에서 이동 (깃발 위치 확보)
   const duckPct = progress * 0.88;
   const duck = duckFor(rowIndex);
-
   return `
     <div class="river-wrap" data-progress="${progress}" data-duck-pct="${duckPct}">
       <div class="river-fill" style="width:${progress}%"></div>
@@ -54,23 +36,18 @@ function riverHTML(progress, rowIndex) {
     </div>`;
 }
 
-// ── 변동 배지 HTML ────────────────────────────────────────────
 function changeBadgeHTML(change) {
   if (change > 0) return `<span class="change-badge change-up">▲ ${change}</span>`;
   if (change < 0) return `<span class="change-badge change-down">▼ ${Math.abs(change)}</span>`;
   return `<span class="change-badge change-same">– 0</span>`;
 }
 
-// ── 포디움 렌더링 ─────────────────────────────────────────────
 function renderPodium(top3) {
   const el = document.getElementById('podium');
   const section = document.getElementById('podium-section');
   if (!top3.length) { section.style.display = 'none'; return; }
   section.style.display = '';
-
-  // 1위를 가운데 배치: 2위, 1위, 3위 순서
   const order = [top3[1], top3[0], top3[2]].filter(Boolean);
-
   el.innerHTML = order.map(s => `
     <div class="podium-card rank-${s.rank}">
       <span class="podium-medal">${MEDALS[s.rank - 1] || '🏅'}</span>
@@ -84,15 +61,12 @@ function renderPodium(top3) {
   `).join('');
 }
 
-// ── 전체 랭킹 렌더링 ──────────────────────────────────────────
 function renderList(data) {
   const list = document.getElementById('leaderboard-list');
-
   if (!data.length) {
     list.innerHTML = `<div class="error-box">데이터가 없습니다.</div>`;
     return;
   }
-
   list.innerHTML = data.map((s, i) => `
     <div class="leaderboard-row rank-${s.rank}" style="animation-delay:${i * 0.04}s">
       <div>
@@ -104,8 +78,6 @@ function renderList(data) {
       <div>${changeBadgeHTML(s.change)}</div>
     </div>
   `).join('');
-
-  // 오리 애니메이션: 잠깐 0에서 시작해 최종 위치로 이동
   requestAnimationFrame(() => {
     document.querySelectorAll('.duck').forEach(duck => {
       const wrap = duck.closest('.river-wrap');
@@ -124,7 +96,6 @@ function renderList(data) {
   });
 }
 
-// ── 유틸 ──────────────────────────────────────────────────────
 function escHtml(str) {
   return String(str ?? '')
     .replace(/&/g, '&amp;')
@@ -142,26 +113,20 @@ function formatTime(ts) {
   return new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-// ── 데이터 로드 ───────────────────────────────────────────────
 async function loadLeaderboard(forceRefresh = false) {
   const btn = document.getElementById('refresh-btn');
   const updatedEl = document.getElementById('last-updated');
-
   btn.classList.add('loading');
   btn.disabled = true;
-
   try {
     const url = forceRefresh ? '/api/leaderboard?refresh=1' : '/api/leaderboard';
     const res = await fetch(url);
     if (!res.ok) throw new Error(`서버 오류: ${res.status}`);
-
     const json = await res.json();
     if (!json.success) throw new Error(json.error || '데이터 로드 실패');
-
     const data = (json.data || []).slice().sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
     renderPodium(data.slice(0, 3));
     renderList(data);
-
     const cached = json.cached ? ' (캐시)' : '';
     updatedEl.textContent = `마지막 갱신: ${formatTime(json.lastFetched)}${cached}`;
   } catch (err) {
@@ -178,6 +143,192 @@ async function loadLeaderboard(forceRefresh = false) {
   }
 }
 
-// ── 자동 갱신 (1분) ──────────────────────────────────────────
+async function loadRevenueSummary(name) {
+  const output = document.getElementById('summary-output');
+  if (!name) {
+    output.innerHTML = '<p>이름을 입력하고 조회 버튼을 눌러 주세요.</p>';
+    return;
+  }
+  output.innerHTML = '<p class="field-note">조회 중입니다...</p>';
+  try {
+    const res = await fetch(`/api/earnings/summary?name=${encodeURIComponent(name)}`);
+    if (!res.ok) throw new Error(`상태 코드 ${res.status}`);
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error || '요약 정보를 불러오지 못했습니다.');
+    const data = json.data;
+    output.innerHTML = `
+      <div class="summary-grid">
+        <div><strong>이름</strong><p>${escHtml(data.studentName)}</p></div>
+        <div><strong>승인 수익</strong><p>${Number(data.revenueTotal).toLocaleString()}원</p></div>
+        <div><strong>레벨</strong><p>${escHtml(data.revenueLevel)}</p></div>
+        <div><strong>인증 포인트</strong><p>${escHtml(String(data.points))}점</p></div>
+      </div>
+    `;
+  } catch (err) {
+    output.innerHTML = `<p class="field-note error-text">${escHtml(err.message)}</p>`;
+  }
+}
+
+async function loadMissions() {
+  const list = document.getElementById('mission-list');
+  const select = document.querySelector('#mission-form select[name="missionId"]');
+  list.innerHTML = '<p class="field-note">미션 목록을 불러오는 중입니다...</p>';
+  select.innerHTML = '<option value="">미션을 선택하세요</option>';
+  try {
+    const res = await fetch('/api/missions');
+    if (!res.ok) throw new Error(`상태 코드 ${res.status}`);
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error || '미션 목록을 불러오지 못했습니다.');
+    const missions = json.data || [];
+    if (!missions.length) {
+      list.innerHTML = '<p class="field-note">등록된 미션이 없습니다.</p>';
+      return;
+    }
+    select.innerHTML = '<option value="">미션을 선택하세요</option>' + missions.map(m => `
+      <option value="${m.id}">[${m.week ? `W${m.week}` : '상시'}] ${escHtml(m.title)}</option>
+    `).join('');
+    list.innerHTML = missions.map(m => `
+      <div class="mission-card">
+        <div>
+          <div class="mission-title">${escHtml(m.title)}</div>
+          <p class="field-note">${escHtml(m.description || '설명이 없습니다.')}</p>
+        </div>
+        <div class="mission-meta">${m.week ? `Week ${m.week}` : '상시'}</div>
+      </div>
+    `).join('');
+  } catch (err) {
+    list.innerHTML = `<p class="field-note error-text">${escHtml(err.message)}</p>`;
+  }
+}
+
+async function loadSubmissionLists(name) {
+  const revenueContainer = document.getElementById('submission-list');
+  const missionContainer = document.getElementById('mission-submission-list');
+  const query = name ? `?name=${encodeURIComponent(name)}` : '';
+  revenueContainer.innerHTML = '<p class="field-note">수익 제출 내역을 불러오는 중입니다...</p>';
+  missionContainer.innerHTML = '<p class="field-note">미션 제출 내역을 불러오는 중입니다...</p>';
+  try {
+    const [revRes, missionRes] = await Promise.all([
+      fetch(`/api/earnings/submissions${query}`),
+      fetch(`/api/mission-submissions${query}`),
+    ]);
+    if (!revRes.ok) throw new Error(`수익 제출 조회 오류 ${revRes.status}`);
+    if (!missionRes.ok) throw new Error(`미션 제출 조회 오류 ${missionRes.status}`);
+    const revJson = await revRes.json();
+    const missionJson = await missionRes.json();
+    if (!revJson.success) throw new Error(revJson.error || '수익 제출 내역을 불러오지 못했습니다.');
+    if (!missionJson.success) throw new Error(missionJson.error || '미션 제출 내역을 불러오지 못했습니다.');
+    const recentRevenue = revJson.data || [];
+    const recentMissions = missionJson.data || [];
+    revenueContainer.innerHTML = recentRevenue.length
+      ? recentRevenue.map(item => `
+        <div class="submission-card">
+          <div>
+            <div class="submission-title">${escHtml(item.student_name)} - ${Number(item.amount).toLocaleString()}원</div>
+            <div class="field-note">상태: ${escHtml(item.status)}</div>
+          </div>
+          <div class="submission-meta">${formatTime(item.submitted_at)}</div>
+        </div>
+      `).join('')
+      : '<p class="field-note">수익 제출 내역이 없습니다.</p>';
+    missionContainer.innerHTML = recentMissions.length
+      ? recentMissions.map(item => `
+        <div class="submission-card">
+          <div>
+            <div class="submission-title">${escHtml(item.student_name)} - ${escHtml(item.mission_title || '미션')}</div>
+            <div class="field-note">상태: ${escHtml(item.status)}</div>
+            <p class="field-note">${escHtml(item.notes || '설명 없음')}</p>
+          </div>
+          <div class="submission-meta">${formatTime(item.submitted_at)}</div>
+        </div>
+      `).join('')
+      : '<p class="field-note">미션 제출 내역이 없습니다.</p>';
+  } catch (err) {
+    const message = `<p class="field-note error-text">${escHtml(err.message)}</p>`;
+    revenueContainer.innerHTML = message;
+    missionContainer.innerHTML = message;
+  }
+}
+
+async function submitEarningsForm(event) {
+  event.preventDefault();
+  const form = document.getElementById('earnings-form');
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const formData = new FormData(form);
+  submitBtn.disabled = true;
+  submitBtn.textContent = '제출 중...';
+  try {
+    const res = await fetch('/api/earnings/submit', { method: 'POST', body: formData });
+    const json = await res.json();
+    if (!res.ok || !json.success) throw new Error(json.error || `서버 오류 ${res.status}`);
+    form.reset();
+    alert('수익 인증이 제출되었습니다. 관리자 승인을 기다려주세요.');
+    const name = document.querySelector('#summary-name-input').value.trim();
+    if (name) loadSubmissionLists(name);
+  } catch (err) {
+    alert(`제출 실패: ${err.message}`);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = '제출하기';
+  }
+}
+
+async function submitMissionForm(event) {
+  event.preventDefault();
+  const form = document.getElementById('mission-form');
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const formData = new FormData(form);
+  submitBtn.disabled = true;
+  submitBtn.textContent = '제출 중...';
+  try {
+    const res = await fetch('/api/mission-submissions', { method: 'POST', body: formData });
+    const json = await res.json();
+    if (!res.ok || !json.success) throw new Error(json.error || `서버 오류 ${res.status}`);
+    form.reset();
+    alert('미션 인증이 제출되었습니다. 관리자 승인을 기다려주세요.');
+    const name = document.querySelector('#summary-name-input').value.trim();
+    if (name) loadSubmissionLists(name);
+  } catch (err) {
+    alert(`제출 실패: ${err.message}`);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = '미션 제출';
+  }
+}
+
+function showTab(tabName) {
+  document.querySelectorAll('.tab-button').forEach(button => {
+    const active = button.dataset.tab === tabName;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  document.querySelectorAll('.tab-panel').forEach(panel => {
+    panel.classList.toggle('active', panel.id === `tab-${tabName}`);
+  });
+}
+
+function initTabs() {
+  document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', () => {
+      showTab(button.dataset.tab);
+      if (button.dataset.tab === 'revenue') {
+        const name = document.querySelector('#summary-name-input').value.trim();
+        if (name) {
+          loadRevenueSummary(name);
+          loadSubmissionLists(name);
+        }
+      }
+    });
+  });
+  document.getElementById('summary-search-btn').addEventListener('click', () => {
+    const name = document.getElementById('summary-name-input').value.trim();
+    loadRevenueSummary(name);
+    loadSubmissionLists(name);
+  });
+  document.getElementById('earnings-form').addEventListener('submit', submitEarningsForm);
+  document.getElementById('mission-form').addEventListener('submit', submitMissionForm);
+}
+
 loadLeaderboard();
-setInterval(() => loadLeaderboard(), 60000);
+loadMissions();
+initTabs();
