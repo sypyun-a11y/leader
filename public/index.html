@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>숏폼3기 수강생 랭킹보드</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="stars" id="stars"></div>
+
+  <header class="header">
+    <div class="header-inner">
+      <div class="title-group">
+        <span class="crown">👑</span>
+        <h1>숏폼3기 수강생 랭킹보드</h1>
+        <span class="crown">👑</span>
+      </div>
+      <p class="subtitle">숏폼3기 수강생들의 현재 진도 현황을 한눈에 확인하세요.</p>
+    </div>
+    <div class="meta-bar">
+      <span id="last-updated">데이터 로딩 중...</span>
+      <button id="refresh-btn" class="refresh-btn" onclick="loadLeaderboard(true)">
+        <span class="refresh-icon">↻</span> 새로고침
+      </button>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- 상위 3위 포디움 -->
+    <section class="podium-section" id="podium-section">
+      <div class="podium-wrapper" id="podium"></div>
+    </section>
+
+    <!-- 전체 랭킹 테이블 -->
+    <section class="table-section">
+      <div class="table-header-row">
+        <span class="th rank-col">#</span>
+        <span class="th name-col">이름</span>
+        <span class="th river-col">진도율 (강 건너기)</span>
+        <span class="th score-col">점수</span>
+        <span class="th change-col">변동</span>
+      </div>
+      <div id="leaderboard-list" class="leaderboard-list">
+        <div class="loading">
+          <div class="duck-loading">🦆</div>
+          <p>데이터를 불러오는 중...</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
