@@ -2,24 +2,24 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:        #fff4e8;
-  --bg2:       #fff7f0;
-  --surface:   #fff9f4;
-  --surface2:  #fff1e6;
-  --border:    rgba(219,115,15,0.18);
+  --bg:        #ffffff;
+  --bg2:       #f8fafc;
+  --surface:   #ffffff;
+  --surface2:  #f3f4f6;
+  --border:    rgba(148,163,184,0.18);
   --gold:      #d97706;
   --silver:    #64748b;
   --bronze:    #b45309;
-  --neon:      #ea580c;
-  --neon2:     #fb923c;
+  --neon:      #f59e0b;
+  --neon2:     #fbbf24;
   --green:     #16a34a;
   --red:       #dc2626;
-  --text:      #1f2937;
+  --text:      #0f172a;
   --text-muted:#475569;
-  --river1:    #f97316;
-  --river2:    #fb923c;
-  --river-light:#fed7aa;
-  --wave:      rgba(251,146,60,0.18);
+  --river1:    #fef3c7;
+  --river2:    #fde68a;
+  --river-light:#fef9c3;
+  --wave:      rgba(249,115,22,0.18);
   --radius:    12px;
   --radius-lg: 20px;
   --shadow:    0 16px 40px rgba(15,23,42,0.08);
@@ -266,8 +266,8 @@ h1 {
   height: 44px;
   border-radius: 22px;
   overflow: hidden;
-  background: linear-gradient(180deg, #1e3a6e 0%, var(--river1) 60%, #0f2a5e 100%);
-  border: 1px solid rgba(96,165,250,0.25);
+  background: linear-gradient(180deg, var(--river1) 0%, var(--river2) 100%);
+  border: 1px solid rgba(245,158,11,0.2);
 }
 
 /* 물결 레이어 */
@@ -340,12 +340,17 @@ h1 {
 
 /* 퍼센트 텍스트 */
 .river-label {
-  position: absolute; right: 30px; top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.7rem; font-weight: 700;
-  color: rgba(255,255,255,0.85);
-  z-index: 5;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  display: block;
+  margin-top: 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+  text-align: right;
+}
+.river-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
 /* 점수 */

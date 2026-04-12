@@ -31,14 +31,16 @@ function riverHTML(progress, rowIndex) {
   const duckPct = progress * 0.88;
   const imageSrc = spartaImageFor(progress);
   return `
-    <div class="river-wrap" data-progress="${progress}" data-duck-pct="${duckPct}">
-      <div class="river-fill" style="width:${progress}%"></div>
-      <div class="river-waves"></div>
-      <div class="river-waves-2"></div>
-      <span class="duck" style="left:calc(${duckPct}% - 14px)">
-        <img src="${imageSrc}" alt="스파르탄 캐릭터" />
-      </span>
-      <span class="river-flag">🏁</span>
+    <div class="river-group">
+      <div class="river-wrap" data-progress="${progress}" data-duck-pct="${duckPct}">
+        <div class="river-fill" style="width:${progress}%"></div>
+        <div class="river-waves"></div>
+        <div class="river-waves-2"></div>
+        <span class="duck" style="left:calc(${duckPct}% - 14px)">
+          <img src="${imageSrc}" alt="스파르탄 캐릭터" />
+        </span>
+        <span class="river-flag">🏁</span>
+      </div>
       <span class="river-label">${progress.toFixed(1)}%</span>
     </div>`;
 }
