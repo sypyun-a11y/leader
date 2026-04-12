@@ -2,29 +2,29 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:        #ffffff;
-  --bg2:       #f8fafc;
-  --surface:   #ffffff;
-  --surface2:  #f1f5f9;
-  --border:    rgba(148,163,184,0.18);
+  --bg:        #fff4e8;
+  --bg2:       #fff7f0;
+  --surface:   #fff9f4;
+  --surface2:  #fff1e6;
+  --border:    rgba(219,115,15,0.18);
   --gold:      #d97706;
   --silver:    #64748b;
   --bronze:    #b45309;
-  --neon:      #2563eb;
-  --neon2:     #7c3aed;
+  --neon:      #ea580c;
+  --neon2:     #fb923c;
   --green:     #16a34a;
   --red:       #dc2626;
-  --text:      #0f172a;
+  --text:      #1f2937;
   --text-muted:#475569;
-  --river1:    #3b82f6;
-  --river2:    #2563eb;
-  --river-light:#93c5fd;
-  --wave:      rgba(59,130,246,0.18);
+  --river1:    #f97316;
+  --river2:    #fb923c;
+  --river-light:#fed7aa;
+  --wave:      rgba(251,146,60,0.18);
   --radius:    12px;
   --radius-lg: 20px;
   --shadow:    0 16px 40px rgba(15,23,42,0.08);
   --glow-gold: 0 0 18px rgba(251,191,36,0.2);
-  --glow-neon: 0 0 18px rgba(124,58,237,0.18);
+  --glow-neon: 0 0 18px rgba(245,158,11,0.18);
 }
 
 html { font-size: 15px; }
@@ -62,12 +62,12 @@ body {
   border-bottom: 1px solid var(--border);
   background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(248,250,252,0.95) 100%);
 }
-.header-inner { display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; }
-.crown { font-size: 2rem; animation: bounce 2s ease-in-out infinite; }
-.crown:last-child { animation-delay: 0.5s; }
-@keyframes bounce {
-  0%,100% { transform: translateY(0); }
-  50%      { transform: translateY(-8px); }
+.header-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 h1 {
   font-size: clamp(1.6rem, 4vw, 2.8rem);
@@ -305,7 +305,7 @@ h1 {
 /* 진행 채우기 */
 .river-fill {
   position: absolute; top: 0; left: 0; bottom: 0;
-  background: linear-gradient(90deg, rgba(37,99,235,0.5), rgba(96,165,250,0.25));
+  background: linear-gradient(90deg, rgba(251,146,60,0.9), rgba(249,115,22,0.6));
   border-radius: 22px 0 0 22px;
   transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
 }
@@ -328,8 +328,8 @@ h1 {
   pointer-events: none;
 }
 .duck img {
-  width: 30px;
-  height: 30px;
+  width: 50px;
+  height: 50px;
   display: block;
   object-fit: contain;
 }
@@ -376,8 +376,8 @@ h1 {
   animation: duckBob 1s ease-in-out infinite, spin 4s linear infinite;
 }
 .duck-loading img {
-  width: 80px;
-  height: 80px;
+  width: 150px;
+  height: 150px;
   display: block;
 }
 
