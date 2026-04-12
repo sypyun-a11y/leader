@@ -110,7 +110,7 @@ function renderList(data) {
       </div>
       <div class="student-name" title="${escHtml(s.name)}"><button type="button" class="student-link" data-name="${escHtml(s.name)}">${escHtml(s.name)}</button></div>
       <div>${riverHTML(s.progress, i)}</div>
-      <div class="level-badge">${levelLabel(s.progressLevel)}</div>
+      <div class="level-badge">${levelLabel(s.progressScore ?? s.progress)}</div>
       <div class="score-val">${formatScore(s.progressScore)}점</div>
     </div>
   `).join('');
