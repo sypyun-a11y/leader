@@ -42,6 +42,32 @@ function changeBadgeHTML(change) {
   return `<span class="change-badge change-same">– 0</span>`;
 }
 
+function levelLabel(level) {
+  return {
+    egg: '알 🥚',
+    baby: '아기 오리 🐣',
+    duck: '오리 🦆',
+    golden: '황금오리 ✨',
+  }[level] || '알 🥚';
+}
+
+function renderMvp(mvp) {
+  const container = document.getElementById('mvp-content');
+  if (!container) return;
+  if (!mvp) {
+    container.innerHTML = '<p class="field-note">이번 주 큰 상승이 감지되지 않았습니다.</p>';
+    return;
+  }
+  container.innerHTML = `
+    <div class="mvp-card-inner">
+      <div><strong>${escHtml(mvp.name)}</strong>님이 이번 주 가장 많이 올랐습니다.</div>
+      <div class="field-note">랭킹 상승: +${mvp.gain}위</div>
+      <div class="field-note">총점: ${formatScore(mvp.totalScore)}점</div>
+      <div class="field-note">진도: ${formatScore(mvp.progressScore)}점 / 미션: ${formatScore(mvp.missionPoints)}점 / 수익: ${formatScore(mvp.revenueScore)}점</div>
+    </div>
+  `;
+}
+
 function renderPodium(top3) {
   const el = document.getElementById('podium');
   const section = document.getElementById('podium-section');
@@ -54,8 +80,8 @@ function renderPodium(top3) {
       <div class="podium-rank-num">${s.rank}위</div>
       <div class="podium-name">${escHtml(s.name)}</div>
       <div class="podium-progress-wrap">
-        <div class="podium-progress-label">${s.progress.toFixed(1)}%</div>
-        <div class="podium-progress-sub">진도율</div>
+        <div class="podium-progress-label">${s.totalScore}점</div>
+        <div class="podium-progress-sub">종합점수</div>
       </div>
     </div>
   `).join('');
@@ -72,10 +98,10 @@ function renderList(data) {
       <div>
         <div class="rank-badge ${BADGES[s.rank - 1] || ''}">${s.rank}</div>
       </div>
-      <div class="student-name" title="${escHtml(s.name)}">${escHtml(s.name)}</div>
+      <div class="student-name" title="${escHtml(s.name)}"><button type="button" class="student-link">${escHtml(s.name)}</button></div>
       <div>${riverHTML(s.progress, i)}</div>
-      <div class="score-val">${formatScore(s.score)}</div>
-      <div>${changeBadgeHTML(s.change)}</div>
+      <div class="level-badge">${levelLabel(s.progressLevel)}</div>
+      <div class="score-val">${formatScore(s.progressScore)}점</div>
     </div>
   `).join('');
   requestAnimationFrame(() => {
@@ -94,6 +120,7 @@ function renderList(data) {
       setTimeout(() => { fill.style.width = `${progress}%`; }, 100);
     });
   });
+  attachStudentModalHandlers();
 }
 
 function escHtml(str) {
@@ -125,6 +152,7 @@ async function loadLeaderboard(forceRefresh = false) {
     const json = await res.json();
     if (!json.success) throw new Error(json.error || '데이터 로드 실패');
     const data = (json.data || []).slice().sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
+    renderMvp(json.mvp);
     renderPodium(data.slice(0, 3));
     renderList(data);
     const cached = json.cached ? ' (캐시)' : '';
@@ -143,192 +171,117 @@ async function loadLeaderboard(forceRefresh = false) {
   }
 }
 
-async function loadRevenueSummary(name) {
-  const output = document.getElementById('summary-output');
-  if (!name) {
-    output.innerHTML = '<p>이름을 입력하고 조회 버튼을 눌러 주세요.</p>';
-    return;
-  }
-  output.innerHTML = '<p class="field-note">조회 중입니다...</p>';
-  try {
-    const res = await fetch(`/api/earnings/summary?name=${encodeURIComponent(name)}`);
-    if (!res.ok) throw new Error(`상태 코드 ${res.status}`);
-    const json = await res.json();
-    if (!json.success) throw new Error(json.error || '요약 정보를 불러오지 못했습니다.');
-    const data = json.data;
-    output.innerHTML = `
-      <div class="summary-grid">
-        <div><strong>이름</strong><p>${escHtml(data.studentName)}</p></div>
-        <div><strong>승인 수익</strong><p>${Number(data.revenueTotal).toLocaleString()}원</p></div>
-        <div><strong>레벨</strong><p>${escHtml(data.revenueLevel)}</p></div>
-        <div><strong>인증 포인트</strong><p>${escHtml(String(data.points))}점</p></div>
-      </div>
-    `;
-  } catch (err) {
-    output.innerHTML = `<p class="field-note error-text">${escHtml(err.message)}</p>`;
-  }
+function openStudentModal(name) {
+  currentStudentName = name;
+  document.getElementById('student-modal-title').textContent = `${name}님의 인증 현황`;
+  document.getElementById('student-modal-subtitle').textContent = '생년월일 마지막 4자리로 본인 인증 후 정보를 확인하세요.';
+  document.getElementById('student-modal-code').value = '';
+  document.getElementById('student-modal-login-message').textContent = '';
+  document.getElementById('student-modal-name').value = name;
+  document.getElementById('student-modal-login').style.display = '';
+  document.getElementById('student-modal-content').style.display = 'none';
+  document.getElementById('student-modal-overlay').style.display = 'flex';
 }
 
-async function loadMissions() {
-  const list = document.getElementById('mission-list');
-  const select = document.querySelector('#mission-form select[name="missionId"]');
-  list.innerHTML = '<p class="field-note">미션 목록을 불러오는 중입니다...</p>';
-  select.innerHTML = '<option value="">미션을 선택하세요</option>';
-  try {
-    const res = await fetch('/api/missions');
-    if (!res.ok) throw new Error(`상태 코드 ${res.status}`);
-    const json = await res.json();
-    if (!json.success) throw new Error(json.error || '미션 목록을 불러오지 못했습니다.');
-    const missions = json.data || [];
-    if (!missions.length) {
-      list.innerHTML = '<p class="field-note">등록된 미션이 없습니다.</p>';
-      return;
-    }
-    select.innerHTML = '<option value="">미션을 선택하세요</option>' + missions.map(m => `
-      <option value="${m.id}">[${m.week ? `W${m.week}` : '상시'}] ${escHtml(m.title)}</option>
-    `).join('');
-    list.innerHTML = missions.map(m => `
-      <div class="mission-card">
-        <div>
-          <div class="mission-title">${escHtml(m.title)}</div>
-          <p class="field-note">${escHtml(m.description || '설명이 없습니다.')}</p>
-        </div>
-        <div class="mission-meta">${m.week ? `Week ${m.week}` : '상시'}</div>
-      </div>
-    `).join('');
-  } catch (err) {
-    list.innerHTML = `<p class="field-note error-text">${escHtml(err.message)}</p>`;
-  }
+function closeStudentModal() {
+  document.getElementById('student-modal-overlay').style.display = 'none';
 }
 
-async function loadSubmissionLists(name) {
-  const revenueContainer = document.getElementById('submission-list');
-  const missionContainer = document.getElementById('mission-submission-list');
-  const query = name ? `?name=${encodeURIComponent(name)}` : '';
-  revenueContainer.innerHTML = '<p class="field-note">수익 제출 내역을 불러오는 중입니다...</p>';
-  missionContainer.innerHTML = '<p class="field-note">미션 제출 내역을 불러오는 중입니다...</p>';
-  try {
-    const [revRes, missionRes] = await Promise.all([
-      fetch(`/api/earnings/submissions${query}`),
-      fetch(`/api/mission-submissions${query}`),
-    ]);
-    if (!revRes.ok) throw new Error(`수익 제출 조회 오류 ${revRes.status}`);
-    if (!missionRes.ok) throw new Error(`미션 제출 조회 오류 ${missionRes.status}`);
-    const revJson = await revRes.json();
-    const missionJson = await missionRes.json();
-    if (!revJson.success) throw new Error(revJson.error || '수익 제출 내역을 불러오지 못했습니다.');
-    if (!missionJson.success) throw new Error(missionJson.error || '미션 제출 내역을 불러오지 못했습니다.');
-    const recentRevenue = revJson.data || [];
-    const recentMissions = missionJson.data || [];
-    revenueContainer.innerHTML = recentRevenue.length
-      ? recentRevenue.map(item => `
-        <div class="submission-card">
-          <div>
-            <div class="submission-title">${escHtml(item.student_name)} - ${Number(item.amount).toLocaleString()}원</div>
-            <div class="field-note">상태: ${escHtml(item.status)}</div>
-          </div>
-          <div class="submission-meta">${formatTime(item.submitted_at)}</div>
-        </div>
-      `).join('')
-      : '<p class="field-note">수익 제출 내역이 없습니다.</p>';
-    missionContainer.innerHTML = recentMissions.length
-      ? recentMissions.map(item => `
-        <div class="submission-card">
-          <div>
-            <div class="submission-title">${escHtml(item.student_name)} - ${escHtml(item.mission_title || '미션')}</div>
-            <div class="field-note">상태: ${escHtml(item.status)}</div>
-            <p class="field-note">${escHtml(item.notes || '설명 없음')}</p>
-          </div>
-          <div class="submission-meta">${formatTime(item.submitted_at)}</div>
-        </div>
-      `).join('')
-      : '<p class="field-note">미션 제출 내역이 없습니다.</p>';
-  } catch (err) {
-    const message = `<p class="field-note error-text">${escHtml(err.message)}</p>`;
-    revenueContainer.innerHTML = message;
-    missionContainer.innerHTML = message;
-  }
-}
-
-async function submitEarningsForm(event) {
-  event.preventDefault();
-  const form = document.getElementById('earnings-form');
-  const submitBtn = form.querySelector('button[type="submit"]');
-  const formData = new FormData(form);
-  submitBtn.disabled = true;
-  submitBtn.textContent = '제출 중...';
-  try {
-    const res = await fetch('/api/earnings/submit', { method: 'POST', body: formData });
-    const json = await res.json();
-    if (!res.ok || !json.success) throw new Error(json.error || `서버 오류 ${res.status}`);
-    form.reset();
-    alert('수익 인증이 제출되었습니다. 관리자 승인을 기다려주세요.');
-    const name = document.querySelector('#summary-name-input').value.trim();
-    if (name) loadSubmissionLists(name);
-  } catch (err) {
-    alert(`제출 실패: ${err.message}`);
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = '제출하기';
-  }
-}
-
-async function submitMissionForm(event) {
-  event.preventDefault();
-  const form = document.getElementById('mission-form');
-  const submitBtn = form.querySelector('button[type="submit"]');
-  const formData = new FormData(form);
-  submitBtn.disabled = true;
-  submitBtn.textContent = '제출 중...';
-  try {
-    const res = await fetch('/api/mission-submissions', { method: 'POST', body: formData });
-    const json = await res.json();
-    if (!res.ok || !json.success) throw new Error(json.error || `서버 오류 ${res.status}`);
-    form.reset();
-    alert('미션 인증이 제출되었습니다. 관리자 승인을 기다려주세요.');
-    const name = document.querySelector('#summary-name-input').value.trim();
-    if (name) loadSubmissionLists(name);
-  } catch (err) {
-    alert(`제출 실패: ${err.message}`);
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = '미션 제출';
-  }
-}
-
-function showTab(tabName) {
-  document.querySelectorAll('.tab-button').forEach(button => {
-    const active = button.dataset.tab === tabName;
-    button.classList.toggle('active', active);
-    button.setAttribute('aria-selected', active ? 'true' : 'false');
-  });
-  document.querySelectorAll('.tab-panel').forEach(panel => {
-    panel.classList.toggle('active', panel.id === `tab-${tabName}`);
-  });
-}
-
-function initTabs() {
-  document.querySelectorAll('.tab-button').forEach(button => {
+function attachStudentModalHandlers() {
+  document.querySelectorAll('.student-link').forEach(button => {
     button.addEventListener('click', () => {
-      showTab(button.dataset.tab);
-      if (button.dataset.tab === 'revenue') {
-        const name = document.querySelector('#summary-name-input').value.trim();
-        if (name) {
-          loadRevenueSummary(name);
-          loadSubmissionLists(name);
-        }
-      }
+      const name = button.dataset.name;
+      if (name) openStudentModal(name);
     });
   });
-  document.getElementById('summary-search-btn').addEventListener('click', () => {
-    const name = document.getElementById('summary-name-input').value.trim();
-    loadRevenueSummary(name);
-    loadSubmissionLists(name);
-  });
-  document.getElementById('earnings-form').addEventListener('submit', submitEarningsForm);
-  document.getElementById('mission-form').addEventListener('submit', submitMissionForm);
 }
 
+async function loginStudentModal(event) {
+  event.preventDefault();
+  const code = document.getElementById('student-modal-code').value.trim();
+  const message = document.getElementById('student-modal-login-message');
+  if (!currentStudentName) return;
+  message.textContent = '로그인 중...';
+  try {
+    const res = await fetch(`/api/student/${encodeURIComponent(currentStudentName)}/auth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) throw new Error(json.error || '로그인에 실패했습니다.');
+    message.textContent = '로그인 성공! 정보를 불러옵니다.';
+    await loadStudentModalData(currentStudentName);
+  } catch (err) {
+    message.textContent = err.message;
+    message.className = 'field-note error-text';
+  }
+}
+
+async function loadStudentModalData(name) {
+  const res = await fetch(`/api/student/${encodeURIComponent(name)}`);
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    throw new Error(json.error || '정보를 불러오지 못했습니다.');
+  }
+  const data = json.data;
+  document.getElementById('student-modal-progress').textContent = `${data.progress.toFixed(1)}%`;
+  document.getElementById('student-modal-level').textContent = levelLabel(data.progressLevel);
+  document.getElementById('student-modal-progress-score').textContent = `${data.progressScore}점`;
+  document.getElementById('student-modal-revenue-total').textContent = `${data.revenueTotal.toLocaleString()}원`;
+  document.getElementById('student-modal-revenue-level').textContent = levelLabel(data.revenueLevel);
+  document.getElementById('student-modal-revenue-score').textContent = `${data.revenueScore}점`;
+  document.getElementById('student-modal-approved-missions').textContent = `${data.missionApprovedCount}개`;
+  document.getElementById('student-modal-approved-weeks').textContent = `${data.missionWeekCount}주차`;
+
+  const riverContainer = document.getElementById('student-modal-river');
+  riverContainer.innerHTML = riverHTML(data.progress, 0);
+
+  const missionList = document.getElementById('student-modal-mission-list');
+  missionList.innerHTML = data.missions.length
+    ? data.missions.map(m => `
+        <div class="mission-card">
+          <div>
+            <div class="mission-title">${escHtml(m.title)} ${m.week ? `[W${m.week}]` : ''}</div>
+            <p class="field-note">${escHtml(m.description || '설명이 없습니다.')}${m.submission_status ? ` / 상태: ${escHtml(m.submission_status)}` : ''}</p>
+          </div>
+        </div>
+      `).join('')
+    : '<p class="field-note">등록된 미션이 없습니다.</p>';
+
+  document.getElementById('student-modal-content').style.display = '';
+  document.getElementById('student-modal-login').style.display = 'none';
+  attachModalRiverAnimation();
+}
+
+function attachModalRiverAnimation() {
+  requestAnimationFrame(() => {
+    document.querySelectorAll('#student-modal-river .duck').forEach(duck => {
+      const wrap = duck.closest('.river-wrap');
+      const targetPct = parseFloat(wrap.dataset.duckPct);
+      duck.style.left = '0px';
+      setTimeout(() => {
+        duck.style.left = `calc(${targetPct}% - 14px)`;
+      }, 100);
+    });
+    document.querySelectorAll('#student-modal-river .river-fill').forEach(fill => {
+      const wrap = fill.closest('.river-wrap');
+      const progress = parseFloat(wrap.dataset.progress);
+      fill.style.width = '0%';
+      setTimeout(() => { fill.style.width = `${progress}%`; }, 100);
+    });
+  });
+}
+
+function initStudentModal() {
+  document.getElementById('student-modal-close').addEventListener('click', closeStudentModal);
+  document.getElementById('student-modal-overlay').addEventListener('click', event => {
+    if (event.target.id === 'student-modal-overlay') closeStudentModal();
+  });
+  document.getElementById('student-modal-login-form').addEventListener('submit', loginStudentModal);
+}
+
+let currentStudentName = null;
+
 loadLeaderboard();
-loadMissions();
-initTabs();
+initStudentModal();

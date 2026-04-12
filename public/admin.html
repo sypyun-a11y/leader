@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>관리자 - 오리 리더보드</title>
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link rel="stylesheet" href="/style.css?v=3" />
 </head>
 <body>
   <div class="stars" id="stars"></div>
@@ -23,6 +23,12 @@
   </header>
 
   <main class="main admin-grid">
+    <section class="section-card">
+      <h2>전체 수강생 진도율 현황</h2>
+      <div id="progress-admin-list" class="mission-list">
+        <p class="field-note">전체 진도율 목록을 불러오는 중...</p>
+      </div>
+    </section>
     <section class="section-card">
       <h2>미션 등록</h2>
       <form id="new-mission-form" class="form-grid">
@@ -61,6 +67,14 @@
   <script>
     function esc(str) {
       return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function levelLabel(level) {
+      return {
+        egg: '알 🥚',
+        baby: '아기 오리 🐣',
+        duck: '오리 🦆',
+        golden: '황금오리 ✨',
+      }[level] || '알 🥚';
     }
     function formatTime(ts) {
       if (!ts) return '-';
@@ -168,8 +182,35 @@
         console.warn(err);
       }
     }
+    async function loadProgressAdmin() {
+      const container = document.getElementById('progress-admin-list');
+      container.innerHTML = '<p class="field-note">전체 진도율 목록을 불러오는 중...</p>';
+      try {
+        const res = await fetch('/api/leaderboard');
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.error || '불러오기 실패');
+        const rows = json.data || [];
+        if (!rows.length) {
+          container.innerHTML = '<p class="field-note">진도율 목록이 없습니다.</p>';
+          return;
+        }
+        container.innerHTML = rows.map(item => `
+          <div class="submission-card">
+            <div>
+              <div class="submission-title">${esc(item.name)} (${levelLabel(item.progressLevel)})</div>
+              <div class="field-note">진도율: ${item.progress.toFixed(1)}% / 점수: ${item.progressScore}점</div>
+            </div>
+            <div class="submission-meta">랭크 ${item.rank}</div>
+          </div>
+        `).join('');
+      } catch (err) {
+        container.innerHTML = `<p class="field-note error-text">${esc(err.message)}</p>`;
+      }
+    }
+
     loadRevenueAdmin();
     loadMissionAdmin();
+    loadProgressAdmin();
   </script>
 </body>
 </html>
