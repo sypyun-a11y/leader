@@ -19,18 +19,25 @@
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 const BADGES = ['gold', 'silver', 'bronze'];
-const DUCKS = ['🦆', '🐥', '🐤', '🐣'];
-function duckFor(index) { return DUCKS[index % DUCKS.length]; }
+
+function spartaImageFor(progress) {
+  if (progress <= 25) return '/sparta1.png';
+  if (progress <= 50) return '/sparta2.png';
+  if (progress <= 75) return '/sparta3.png';
+  return '/sparta4.png';
+}
 
 function riverHTML(progress, rowIndex) {
   const duckPct = progress * 0.88;
-  const duck = duckFor(rowIndex);
+  const imageSrc = spartaImageFor(progress);
   return `
     <div class="river-wrap" data-progress="${progress}" data-duck-pct="${duckPct}">
       <div class="river-fill" style="width:${progress}%"></div>
       <div class="river-waves"></div>
       <div class="river-waves-2"></div>
-      <span class="duck" style="left:calc(${duckPct}% - 14px)">${duck}</span>
+      <span class="duck" style="left:calc(${duckPct}% - 14px)">
+        <img src="${imageSrc}" alt="스파르탄 캐릭터" />
+      </span>
       <span class="river-flag">🏁</span>
       <span class="river-label">${progress.toFixed(1)}%</span>
     </div>`;
