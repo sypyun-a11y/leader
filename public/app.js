@@ -55,15 +55,16 @@ function renderMvp(mvp) {
   const container = document.getElementById('mvp-content');
   if (!container) return;
   if (!mvp) {
-    container.innerHTML = '<p class="field-note">이번 주 큰 상승이 감지되지 않았습니다.</p>';
+    container.innerHTML = '<p class="field-note">이번 주 MVP 정보를 불러올 수 없습니다.</p>';
     return;
   }
   container.innerHTML = `
     <div class="mvp-card-inner">
-      <div><strong>${escHtml(mvp.name)}</strong>님이 이번 주 가장 많이 올랐습니다.</div>
-      <div class="field-note">랭킹 상승: +${mvp.gain}위</div>
-      <div class="field-note">총점: ${formatScore(mvp.totalScore)}점</div>
-      <div class="field-note">진도: ${formatScore(mvp.progressScore)}점 / 미션: ${formatScore(mvp.missionPoints)}점 / 수익: ${formatScore(mvp.revenueScore)}점</div>
+      <div><strong>${escHtml(mvp.name)}</strong>님이 이번 주 최고 점수입니다.</div>
+      <div class="field-note">총점 (진도+수익): ${formatScore(mvp.mvpScore)}점</div>
+      <div class="field-note">진도 점수: ${formatScore(mvp.progressScore)}점</div>
+      <div class="field-note">수익 점수: ${formatScore(mvp.revenueScore)}점</div>
+      <div class="field-note">미션 추가 점수: ${formatScore(mvp.missionPoints)}점</div>
     </div>
   `;
 }
@@ -98,7 +99,7 @@ function renderList(data) {
       <div>
         <div class="rank-badge ${BADGES[s.rank - 1] || ''}">${s.rank}</div>
       </div>
-      <div class="student-name" title="${escHtml(s.name)}"><button type="button" class="student-link">${escHtml(s.name)}</button></div>
+      <div class="student-name" title="${escHtml(s.name)}"><button type="button" class="student-link" data-name="${escHtml(s.name)}">${escHtml(s.name)}</button></div>
       <div>${riverHTML(s.progress, i)}</div>
       <div class="level-badge">${levelLabel(s.progressLevel)}</div>
       <div class="score-val">${formatScore(s.progressScore)}점</div>

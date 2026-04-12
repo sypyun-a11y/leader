@@ -278,28 +278,22 @@ function invalidateLeaderboardCache() {
 }
 
 function computeMvp(rankings) {
-  if (!previousMetrics?.length) return null;
-  const progressMap = previousMetrics.reduce((acc, row) => {
-    acc[row.name] = row.progress;
-    return acc;
-  }, {});
+  if (!rankings?.length) return null;
   const candidate = rankings.reduce((best, student) => {
-    const prevProgress = progressMap[String(student.name).trim().toLowerCase()];
-    if (prevProgress === undefined) return best;
-    const gain = student.progress - prevProgress;
-    if (gain <= 0) return best;
-    if (!best || gain > best.gain) {
-      return { ...student, gain };
+    const mvpScore = (student.progressScore || 0) + (student.revenueScore || 0);
+    if (!best || mvpScore > best.mvpScore) {
+      return { ...student, mvpScore };
     }
     return best;
   }, null);
   if (!candidate) return null;
   return {
     name: candidate.name,
-    progressGain: Math.round(candidate.gain * 10) / 10,
-    previousProgress: Math.round((progressMap[String(candidate.name).trim().toLowerCase()] || 0) * 10) / 10,
-    currentProgress: Math.round(candidate.progress * 10) / 10,
-    level: candidate.progressLevel,
+    mvpScore: candidate.mvpScore,
+    progressScore: candidate.progressScore || 0,
+    revenueScore: candidate.revenueScore || 0,
+    missionPoints: candidate.missionPoints || 0,
+    progressLevel: candidate.progressLevel,
   };
 }
 
