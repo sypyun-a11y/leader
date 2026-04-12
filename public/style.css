@@ -376,8 +376,8 @@ h1 {
   animation: duckBob 1s ease-in-out infinite, spin 4s linear infinite;
 }
 .duck-loading img {
-  width: 30px;
-  height: 30px;
+  width: 80px;
+  height: 80px;
   display: block;
 }
 
