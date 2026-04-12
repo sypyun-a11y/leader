@@ -416,6 +416,20 @@ app.post('/api/admin/revenue-submissions/:id/reject', async (req, res) => {
   res.json({ success:true });
 });
 
+// Legacy route aliases for older client behavior.
+app.post('/api/admin/revenue-submissions/:id/approved', async (req, res) => {
+  if (!pool) return res.status(503).json({ success: false, error:'Database not configured' });
+  const id = parseInt(req.params.id, 10);
+  await pool.query('UPDATE revenue_submissions SET status = $1, reviewed_at = now(), reviewer = $2 WHERE id = $3', ['approved','admin',id]);
+  res.json({ success:true });
+});
+app.post('/api/admin/revenue-submissions/:id/rejected', async (req, res) => {
+  if (!pool) return res.status(503).json({ success: false, error:'Database not configured' });
+  const id = parseInt(req.params.id, 10);
+  await pool.query('UPDATE revenue_submissions SET status = $1, reviewed_at = now(), reviewer = $2 WHERE id = $3', ['rejected','admin',id]);
+  res.json({ success:true });
+});
+
 app.get('/api/admin/mission-submissions', async (req, res) => {
   if (!pool) return res.status(503).json({ success: false, error:'Database not configured' });
   const result = await pool.query(`
@@ -435,6 +449,20 @@ app.post('/api/admin/mission-submissions/:id/approve', async (req, res) => {
 });
 
 app.post('/api/admin/mission-submissions/:id/reject', async (req, res) => {
+  if (!pool) return res.status(503).json({ success: false, error:'Database not configured' });
+  const id = parseInt(req.params.id, 10);
+  await pool.query('UPDATE mission_submissions SET status = $1, reviewed_at = now(), reviewer = $2 WHERE id = $3', ['rejected','admin',id]);
+  res.json({ success:true });
+});
+
+// Legacy route aliases for older client behavior.
+app.post('/api/admin/mission-submissions/:id/approved', async (req, res) => {
+  if (!pool) return res.status(503).json({ success: false, error:'Database not configured' });
+  const id = parseInt(req.params.id, 10);
+  await pool.query('UPDATE mission_submissions SET status = $1, reviewed_at = now(), reviewer = $2 WHERE id = $3', ['approved','admin',id]);
+  res.json({ success:true });
+});
+app.post('/api/admin/mission-submissions/:id/rejected', async (req, res) => {
   if (!pool) return res.status(503).json({ success: false, error:'Database not configured' });
   const id = parseInt(req.params.id, 10);
   await pool.query('UPDATE mission_submissions SET status = $1, reviewed_at = now(), reviewer = $2 WHERE id = $3', ['rejected','admin',id]);

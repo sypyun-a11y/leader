@@ -87,8 +87,8 @@
               ${item.image_path ? `<div class="field-note">증빙: <a href="/${esc(item.image_path)}" target="_blank">보기</a></div>` : ''}
             </div>
             <div class="admin-actions">
-              <button class="secondary-btn" onclick="reviewRevenue(${item.id}, 'approved')">승인</button>
-              <button class="secondary-btn" onclick="reviewRevenue(${item.id}, 'rejected')">거부</button>
+              <button class="secondary-btn" onclick="reviewRevenue(${item.id}, 'approve')">승인</button>
+              <button class="secondary-btn" onclick="reviewRevenue(${item.id}, 'reject')">거부</button>
             </div>
           </div>
         `).join('');
@@ -117,8 +117,8 @@
               <p class="field-note">${esc(item.notes || '-')}</p>
             </div>
             <div class="admin-actions">
-              <button class="secondary-btn" onclick="reviewMission(${item.id}, 'approved')">승인</button>
-              <button class="secondary-btn" onclick="reviewMission(${item.id}, 'rejected')">거부</button>
+              <button class="secondary-btn" onclick="reviewMission(${item.id}, 'approve')">승인</button>
+              <button class="secondary-btn" onclick="reviewMission(${item.id}, 'reject')">거부</button>
             </div>
           </div>
         `).join('');
@@ -126,12 +126,22 @@
         container.innerHTML = `<p class="field-note error-text">${esc(err.message)}</p>`;
       }
     }
-    async function reviewRevenue(id, status) {
-      await fetch(`/api/admin/revenue-submissions/${id}/${status}`, { method: 'POST' });
+    async function reviewRevenue(id, action) {
+      const res = await fetch(`/api/admin/revenue-submissions/${id}/${action}`, { method: 'POST' });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        alert(json.error || '승인 요청에 실패했습니다.');
+        return;
+      }
       loadRevenueAdmin();
     }
-    async function reviewMission(id, status) {
-      await fetch(`/api/admin/mission-submissions/${id}/${status}`, { method: 'POST' });
+    async function reviewMission(id, action) {
+      const res = await fetch(`/api/admin/mission-submissions/${id}/${action}`, { method: 'POST' });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        alert(json.error || '미션 승인 요청에 실패했습니다.');
+        return;
+      }
       loadMissionAdmin();
     }
     document.getElementById('new-mission-form').addEventListener('submit', async event => {
