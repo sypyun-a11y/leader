@@ -68,13 +68,13 @@
     function esc(str) {
       return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
-    function levelLabel(level) {
-      return {
-        egg: '알 🥚',
-        baby: '아기 오리 🐣',
-        duck: '오리 🦆',
-        golden: '황금오리 ✨',
-      }[level] || '알 🥚';
+    function levelLabel(scoreValue) {
+      const score = parseFloat(scoreValue);
+      if (Number.isNaN(score)) return '🛡️ 신병';
+      if (score <= 25) return '🛡️ 신병';
+      if (score <= 50) return '⚔️ 병사';
+      if (score <= 75) return '🏹 전사';
+      return '👑 스파르탄';
     }
     function formatTime(ts) {
       if (!ts) return '-';
@@ -197,7 +197,7 @@
         container.innerHTML = rows.map(item => `
           <div class="submission-card">
             <div>
-              <div class="submission-title">${esc(item.name)} (${levelLabel(item.progressLevel)})</div>
+              <div class="submission-title">${esc(item.name)} (${levelLabel(item.progressScore ?? item.progress)})</div>
               <div class="field-note">진도율: ${item.progress.toFixed(1)}% / 점수: ${item.progressScore}점</div>
             </div>
             <div class="submission-meta">랭크 ${item.rank}</div>
