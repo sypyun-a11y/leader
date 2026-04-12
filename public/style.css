@@ -599,6 +599,40 @@ select {
 .modal-content .section-card {
   margin-bottom: 1rem;
 }
+.admin-login-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 100;
+}
+.admin-login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  width: min(100%, 420px);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.admin-login-card h2 {
+  margin-bottom: 0.75rem;
+}
+.submission-title button {
+  background: none;
+  border: none;
+  font: inherit;
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+.submission-title button:hover {
+  text-decoration: underline;
+}
 @media (max-width: 700px) {
   .modal-card {
     width: 100%;

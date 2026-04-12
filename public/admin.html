@@ -22,6 +22,21 @@
     </div>
   </header>
 
+  <div id="admin-login-overlay" class="admin-login-overlay">
+    <div class="admin-login-card">
+      <h2>관리자 인증</h2>
+      <p class="field-note">비밀번호를 입력해야 관리자 페이지에 접근할 수 있습니다.</p>
+      <form id="admin-login-form" class="form-grid">
+        <label>
+          비밀번호
+          <input id="admin-password-input" class="text-input" type="password" required placeholder="관리자 비밀번호" />
+        </label>
+        <button type="submit" class="primary-btn">로그인</button>
+      </form>
+      <p id="admin-login-message" class="field-note"></p>
+    </div>
+  </div>
+
   <main class="main admin-grid">
     <section class="section-card">
       <h2>전체 수강생 진도율 현황</h2>
@@ -63,6 +78,38 @@
       </div>
     </section>
   </main>
+
+  <div id="admin-student-modal-overlay" class="modal-overlay" style="display:none;">
+    <div id="admin-student-modal" class="modal-card">
+      <button id="admin-student-modal-close" class="modal-close" aria-label="닫기">✕</button>
+      <div class="modal-header">
+        <h2 id="admin-student-modal-title">학생 인증 현황</h2>
+      </div>
+      <div class="section-card">
+        <h3>나의 인증 현황</h3>
+        <div id="admin-student-modal-summary" class="summary-grid">
+          <div><strong>진도율</strong><p id="admin-student-modal-progress">-</p></div>
+          <div><strong>레벨</strong><p id="admin-student-modal-level">-</p></div>
+          <div><strong>진도 점수</strong><p id="admin-student-modal-progress-score">-</p></div>
+          <div><strong>수익 인증 합계</strong><p id="admin-student-modal-revenue-total">-</p></div>
+          <div><strong>전화번호</strong><p id="admin-student-modal-phone">-</p></div>
+        </div>
+        <div id="admin-student-modal-river" class="river-wrap" style="margin-top:1rem;"></div>
+      </div>
+      <div class="section-card">
+        <h3>수익 현황</h3>
+        <div id="admin-student-modal-revenue-status" class="summary-grid">
+          <div><strong>수익 점수</strong><p id="admin-student-modal-revenue-score">-</p></div>
+          <div><strong>승인된 미션</strong><p id="admin-student-modal-approved-missions">-</p></div>
+          <div><strong>승인된 주차</strong><p id="admin-student-modal-approved-weeks">-</p></div>
+        </div>
+      </div>
+      <div class="section-card">
+        <h3>미션 목록</h3>
+        <div id="admin-student-modal-mission-list" class="mission-list"><p class="field-note">정보를 불러오는 중...</p></div>
+      </div>
+    </div>
+  </div>
 
   <script>
     function esc(str) {
@@ -182,6 +229,90 @@
         console.warn(err);
       }
     }
+    function showAdminLoginOverlay() {
+      document.getElementById('admin-login-overlay').style.display = 'flex';
+    }
+    function hideAdminLoginOverlay() {
+      document.getElementById('admin-login-overlay').style.display = 'none';
+    }
+    async function loginAdmin(event) {
+      event.preventDefault();
+      const password = document.getElementById('admin-password-input').value.trim();
+      const message = document.getElementById('admin-login-message');
+      message.textContent = '로그인 중...';
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password }),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.error || '로그인에 실패했습니다.');
+        message.textContent = '로그인 성공했습니다.';
+        hideAdminLoginOverlay();
+        loadProgressAdmin();
+      } catch (err) {
+        message.textContent = err.message;
+        message.className = 'field-note error-text';
+      }
+    }
+    function openAdminStudentModal(name) {
+      document.getElementById('admin-student-modal-title').textContent = `${name}님의 인증 현황`;
+      document.getElementById('admin-student-modal-progress').textContent = '-';
+      document.getElementById('admin-student-modal-level').textContent = '-';
+      document.getElementById('admin-student-modal-progress-score').textContent = '-';
+      document.getElementById('admin-student-modal-revenue-total').textContent = '-';
+      document.getElementById('admin-student-modal-phone').textContent = '-';
+      document.getElementById('admin-student-modal-revenue-score').textContent = '-';
+      document.getElementById('admin-student-modal-approved-missions').textContent = '-';
+      document.getElementById('admin-student-modal-approved-weeks').textContent = '-';
+      document.getElementById('admin-student-modal-mission-list').innerHTML = '<p class="field-note">정보를 불러오는 중...</p>';
+      document.getElementById('admin-student-modal-overlay').style.display = 'flex';
+      loadAdminStudentData(name);
+    }
+    function closeAdminStudentModal() {
+      document.getElementById('admin-student-modal-overlay').style.display = 'none';
+    }
+    async function loadAdminStudentData(name) {
+      try {
+        const res = await fetch(`/api/student/${encodeURIComponent(name)}`);
+        const json = await res.json();
+        if (!res.ok || !json.success) throw new Error(json.error || '정보를 불러오지 못했습니다.');
+        const data = json.data;
+        document.getElementById('admin-student-modal-progress').textContent = `${data.progress.toFixed(1)}%`;
+        document.getElementById('admin-student-modal-level').textContent = `${levelLabel(data.progressScore)}`;
+        document.getElementById('admin-student-modal-progress-score').textContent = `${data.progressScore}점`;
+        document.getElementById('admin-student-modal-revenue-total').textContent = `${data.revenueTotal.toLocaleString()}원`;
+        document.getElementById('admin-student-modal-phone').textContent = data.phone || '-';
+        document.getElementById('admin-student-modal-revenue-score').textContent = `${data.revenueScore}점`;
+        document.getElementById('admin-student-modal-approved-missions').textContent = `${data.missionApprovedCount}개`;
+        document.getElementById('admin-student-modal-approved-weeks').textContent = `${data.missionWeekCount}주차`;
+        document.getElementById('admin-student-modal-mission-list').innerHTML = data.missions.length
+          ? data.missions.map(m => `
+              <div class="mission-card">
+                <div>
+                  <div class="mission-title">${esc(m.title)} ${m.week ? `[W${m.week}]` : ''}</div>
+                  <p class="field-note">${esc(m.description || '설명이 없습니다.')}${m.submission_status ? ` / 상태: ${esc(m.submission_status)}` : ''}</p>
+                </div>
+              </div>
+            `).join('')
+          : '<p class="field-note">등록된 미션이 없습니다.</p>';
+        document.getElementById('admin-student-modal-river').innerHTML = `
+          <div class="river-wrap" style="height: 24px;">
+            <div class="river-fill" style="width:${data.progress}%"></div>
+          </div>`;
+      } catch (err) {
+        document.getElementById('admin-student-modal-mission-list').innerHTML = `<p class="field-note error-text">${esc(err.message)}</p>`;
+      }
+    }
+    function attachAdminStudentHandlers() {
+      document.querySelectorAll('.admin-student-link').forEach(button => {
+        button.addEventListener('click', () => {
+          const name = button.dataset.name;
+          if (name) openAdminStudentModal(name);
+        });
+      });
+    }
     async function loadProgressAdmin() {
       const container = document.getElementById('progress-admin-list');
       container.innerHTML = '<p class="field-note">전체 진도율 목록을 불러오는 중...</p>';
@@ -197,16 +328,23 @@
         container.innerHTML = rows.map(item => `
           <div class="submission-card">
             <div>
-              <div class="submission-title">${esc(item.name)} (${levelLabel(item.progressScore ?? item.progress)})</div>
+              <div class="submission-title"><button type="button" class="admin-student-link" data-name="${esc(item.name)}">${esc(item.name)}</button> (${levelLabel(item.progressScore ?? item.progress)})</div>
               <div class="field-note">진도율: ${item.progress.toFixed(1)}% / 점수: ${item.progressScore}점</div>
             </div>
             <div class="submission-meta">랭크 ${item.rank}</div>
           </div>
         `).join('');
+        attachAdminStudentHandlers();
       } catch (err) {
         container.innerHTML = `<p class="field-note error-text">${esc(err.message)}</p>`;
       }
     }
+
+    document.getElementById('admin-login-form').addEventListener('submit', loginAdmin);
+    document.getElementById('admin-student-modal-close').addEventListener('click', closeAdminStudentModal);
+    document.getElementById('admin-student-modal-overlay').addEventListener('click', event => {
+      if (event.target.id === 'admin-student-modal-overlay') closeAdminStudentModal();
+    });
 
     loadRevenueAdmin();
     loadMissionAdmin();

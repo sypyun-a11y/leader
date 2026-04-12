@@ -218,7 +218,9 @@ function normalizeRow(row, index) {
   const nameKey = findKey('name', 'student_name', 'user_name', '이름', 'username');
   const positionKey = findKey('position', 'track', 'course', '포지션', '트랙', 'camp', 'cohort');
   const dobKey = findKey('date_of_birth', 'birth_date', 'dob', '생년월일');
+  const phoneKey = findKey('phone', 'phone_number', 'mobile', 'handphone', '전화번호');
   const rawDob = dobKey ? String(row[dobKey] || '').trim() : null;
+  const rawPhone = phoneKey ? String(row[phoneKey] || '').trim() : null;
 
   return {
     id: idKey ? row[idKey] : index,
@@ -227,6 +229,7 @@ function normalizeRow(row, index) {
     progress: Math.min(100, Math.max(0, progress)),
     score: scoreValue !== null ? scoreValue : progress,
     dateOfBirth: rawDob || null,
+    phone: rawPhone || null,
   };
 }
 
@@ -376,7 +379,8 @@ app.get('/api/leaderboard', async (req, res) => {
 app.get('/api/student/:name', async (req, res) => {
   const studentName = String(req.params.name || '').trim();
   if (!studentName) return res.status(400).json({ success:false, error:'name parameter required' });
-  if (!(await isStudentAuthenticated(req, studentName))) {
+  const authenticatedStudent = await isStudentAuthenticated(req, studentName);
+  if (!authenticatedStudent && !isAdminAuthenticated(req)) {
     return res.status(401).json({ success:false, error:'로그인이 필요합니다.' });
   }
 
@@ -450,6 +454,7 @@ app.get('/api/student/:name', async (req, res) => {
       missionApprovedCount,
       missionWeekCount,
       missionPoints,
+      phone: studentRow?.phone || null,
       revenueSubmissions,
       missions,
       dbConfigured,
@@ -475,6 +480,14 @@ app.post('/api/student/:name/auth', async (req, res) => {
 
   const token = getStudentAuthToken(studentName, last4);
   res.setHeader('Set-Cookie', `${STUDENT_AUTH_COOKIE_NAME}=${token}; HttpOnly; Path=/; Max-Age=86400`);
+  res.json({ success:true });
+});
+
+app.post('/api/admin/login', (req, res) => {
+  const password = String(req.body.password || '').trim();
+  if (!ADMIN_PASSWORD) return res.status(503).json({ success:false, error:'관리자 비밀번호가 설정되지 않았습니다.' });
+  if (password !== ADMIN_PASSWORD) return res.status(401).json({ success:false, error:'비밀번호가 일치하지 않습니다.' });
+  res.setHeader('Set-Cookie', `${ADMIN_COOKIE_NAME}=${ADMIN_AUTH_TOKEN}; HttpOnly; Path=/; Max-Age=86400`);
   res.json({ success:true });
 });
 
@@ -575,16 +588,6 @@ app.get('/api/missions', async (req, res) => {
   }
   const result = await pool.query('SELECT * FROM missions ORDER BY week ASC, id ASC');
   res.json({ success:true, data: result.rows });
-});
-
-app.post('/api/admin/login', (req, res) => {
-  if (!ADMIN_AUTH_TOKEN) return res.status(503).json({ success: false, error: 'ADMIN_PASSWORD is not configured' });
-  const password = String(req.body.password || '');
-  if (password !== ADMIN_PASSWORD) {
-    return res.status(401).json({ success: false, error: '비밀번호가 틀렸습니다.' });
-  }
-  res.setHeader('Set-Cookie', `${ADMIN_COOKIE_NAME}=${ADMIN_AUTH_TOKEN}; HttpOnly; Path=/; Max-Age=86400`);
-  res.json({ success:true });
 });
 
 app.post('/api/admin/logout', (req, res) => {
