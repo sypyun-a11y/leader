@@ -42,13 +42,13 @@ function changeBadgeHTML(change) {
   return `<span class="change-badge change-same">– 0</span>`;
 }
 
-function levelLabel(level) {
-  return {
-    egg: '알 🥚',
-    baby: '아기 오리 🐣',
-    duck: '오리 🦆',
-    golden: '황금오리 ✨',
-  }[level] || '알 🥚';
+function levelLabel(value) {
+  const score = parseFloat(value);
+  if (Number.isNaN(score)) return '🛡️ 신병';
+  if (score <= 25) return '🛡️ 신병';
+  if (score <= 50) return '⚔️ 병사';
+  if (score <= 75) return '🏹 전사';
+  return '👑 스파르탄';
 }
 
 function renderMvp(mvp) {
@@ -153,7 +153,6 @@ async function loadLeaderboard(forceRefresh = false) {
     const json = await res.json();
     if (!json.success) throw new Error(json.error || '데이터 로드 실패');
     const data = (json.data || []).slice().sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
-    renderMvp(json.mvp);
     renderPodium(data.slice(0, 3));
     renderList(data);
     const cached = json.cached ? ' (캐시)' : '';
@@ -227,10 +226,9 @@ async function loadStudentModalData(name) {
   }
   const data = json.data;
   document.getElementById('student-modal-progress').textContent = `${data.progress.toFixed(1)}%`;
-  document.getElementById('student-modal-level').textContent = levelLabel(data.progressLevel);
+  document.getElementById('student-modal-level').textContent = levelLabel(data.progressScore);
   document.getElementById('student-modal-progress-score').textContent = `${data.progressScore}점`;
   document.getElementById('student-modal-revenue-total').textContent = `${data.revenueTotal.toLocaleString()}원`;
-  document.getElementById('student-modal-revenue-level').textContent = levelLabel(data.revenueLevel);
   document.getElementById('student-modal-revenue-score').textContent = `${data.revenueScore}점`;
   document.getElementById('student-modal-approved-missions').textContent = `${data.missionApprovedCount}개`;
   document.getElementById('student-modal-approved-weeks').textContent = `${data.missionWeekCount}주차`;
