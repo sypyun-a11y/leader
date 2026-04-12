@@ -360,9 +360,17 @@ h1 {
 /* 점수 */
 .score-val {
   font-weight: 700; font-size: 1rem;
-  background: linear-gradient(135deg, var(--neon), #818cf8);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  color: var(--text);
   text-align: right;
+}
+.score-val--normal {
+  color: #b4690e;
+}
+.score-val--mid {
+  color: #d97706;
+}
+.score-val--high {
+  color: #c2410c;
 }
 
 /* 변동 */

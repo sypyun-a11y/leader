@@ -60,6 +60,14 @@ function levelLabel(value) {
   return '👑 스파르탄';
 }
 
+function scoreClass(scoreValue) {
+  const score = parseFloat(scoreValue);
+  if (Number.isNaN(score)) return '';
+  if (score >= 90) return 'score-val--high';
+  if (score >= 75) return 'score-val--mid';
+  return 'score-val--normal';
+}
+
 function renderMvp(mvp) {
   const container = document.getElementById('mvp-content');
   if (!container) return;
@@ -111,7 +119,7 @@ function renderList(data) {
       <div class="student-name" title="${escHtml(s.name)}"><button type="button" class="student-link" data-name="${escHtml(s.name)}">${escHtml(s.name)}</button></div>
       <div>${riverHTML(s.progress, i)}</div>
       <div class="level-badge">${levelLabel(s.progressScore ?? s.progress)}</div>
-      <div class="score-val">${formatScore(s.progressScore)}점</div>
+      <div class="score-val ${scoreClass(s.progressScore)}">${formatScore(s.progressScore)}점</div>
     </div>
   `).join('');
   requestAnimationFrame(() => {
