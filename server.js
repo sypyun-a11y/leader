@@ -366,10 +366,10 @@ async function fetchLeaderboardData() {
 
 function formatProgressLevelLabel(level) {
   return {
-    egg: '알 🥚',
-    baby: '아기 오리 🐣',
-    duck: '오리 🦆',
-    golden: '황금오리 ✨',
+    egg: '🛡️ 신병',
+    baby: '⚔️ 병사',
+    duck: '🏹 전사',
+    golden: '👑 스파르탄',
   }[level] || String(level ?? '');
 }
 
