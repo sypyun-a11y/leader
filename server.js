@@ -373,7 +373,7 @@ function formatProgressLevelLabel(level) {
   }[level] || String(level ?? '');
 }
 
-app.get('/api/leaderboard/export', async (req, res) => {
+app.get('/api/leaderboard/export', requireAdmin, async (req, res) => {
   try {
     const rankings = await fetchLeaderboardData();
     const escapeCsv = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
