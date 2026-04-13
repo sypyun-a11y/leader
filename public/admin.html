@@ -18,6 +18,7 @@
       <p class="subtitle">수익 및 미션 제출을 승인 또는 거부하세요.</p>
     </div>
     <div class="meta-bar">
+      <a class="export-btn" href="/api/leaderboard/export">엑셀로 내보내기</a>
       <a class="admin-link" href="/">메인 페이지로</a>
     </div>
   </header>
@@ -230,9 +231,11 @@
       }
     }
     function showAdminLoginOverlay() {
+      document.body.classList.add('admin-locked');
       document.getElementById('admin-login-overlay').style.display = 'flex';
     }
     function hideAdminLoginOverlay() {
+      document.body.classList.remove('admin-locked');
       document.getElementById('admin-login-overlay').style.display = 'none';
     }
     async function loginAdmin(event) {
