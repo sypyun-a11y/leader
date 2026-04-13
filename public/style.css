@@ -263,6 +263,8 @@ h1 {
 /* ─── 강 건너기 애니메이션 ─── */
 .river-wrap {
   position: relative;
+  width: 100%;
+  min-width: 180px;
   height: 44px;
   border-radius: 22px;
   overflow: hidden;
@@ -357,9 +359,9 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  align-items: center;
-  max-width: 240px;
-  margin: 0 auto;
+  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* 점수 */
