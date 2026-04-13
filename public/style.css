@@ -622,7 +622,7 @@ select {
   position: fixed;
   inset: 0;
   background: var(--bg);
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;

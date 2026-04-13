@@ -736,12 +736,10 @@ app.post('/api/admin/missions', async (req, res) => {
 });
 
 app.get('/admin/login', (req, res) => {
-  if (isAdminAuthenticated(req)) return res.redirect('/admin');
-  res.sendFile(path.join(__dirname, 'public', 'admin-login.html'));
+  return res.redirect('/admin');
 });
 
 app.get('/admin', (req, res) => {
-  if (!isAdminAuthenticated(req)) return res.redirect('/admin/login');
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
