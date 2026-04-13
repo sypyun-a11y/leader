@@ -357,6 +357,9 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  align-items: center;
+  max-width: 240px;
+  margin: 0 auto;
 }
 
 /* 점수 */
@@ -602,12 +605,12 @@ select {
 .admin-login-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15,23,42,0.65);
+  background: var(--bg);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  z-index: 100;
+  z-index: 9999;
 }
 .admin-login-card {
   background: var(--surface);
@@ -620,6 +623,18 @@ select {
 }
 .admin-login-card h2 {
   margin-bottom: 0.75rem;
+}
+body.admin-locked {
+  overflow: hidden;
+  background: var(--bg);
+}
+body.admin-locked .header,
+body.admin-locked .main,
+body.admin-locked .stars {
+  display: none;
+}
+body.admin-locked .admin-login-overlay {
+  background: var(--bg);
 }
 .submission-title button {
   background: none;
