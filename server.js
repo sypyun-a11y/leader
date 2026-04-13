@@ -364,6 +364,15 @@ async function fetchLeaderboardData() {
   return result;
 }
 
+function formatProgressLevelLabel(level) {
+  return {
+    egg: '알 🥚',
+    baby: '아기 오리 🐣',
+    duck: '오리 🦆',
+    golden: '황금오리 ✨',
+  }[level] || String(level ?? '');
+}
+
 app.get('/api/leaderboard/export', async (req, res) => {
   try {
     const rankings = await fetchLeaderboardData();
@@ -378,7 +387,7 @@ app.get('/api/leaderboard/export', async (req, res) => {
       student.name,
       student.position,
       `${student.progress.toFixed(1)}%`,
-      student.progressLevel,
+      formatProgressLevelLabel(student.progressLevel),
       student.progressScore,
       student.revenueTotal,
       student.revenueScore,
