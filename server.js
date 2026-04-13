@@ -364,6 +364,39 @@ async function fetchLeaderboardData() {
   return result;
 }
 
+app.get('/api/leaderboard/export', async (req, res) => {
+  try {
+    const rankings = await fetchLeaderboardData();
+    const escapeCsv = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
+    const headers = [
+      'Rank', 'Name', 'Position', 'Progress', 'Progress Level', 'Progress Score',
+      'Revenue Total', 'Revenue Score', 'Approved Missions', 'Approved Weeks', 'Total Score'
+    ];
+    const lines = [headers.map(escapeCsv).join(',')];
+    const rows = rankings.map(student => [
+      student.rank,
+      student.name,
+      student.position,
+      `${student.progress.toFixed(1)}%`,
+      student.progressLevel,
+      student.progressScore,
+      student.revenueTotal,
+      student.revenueScore,
+      student.missionApprovedCount,
+      student.missionWeekCount,
+      student.totalScore,
+    ]);
+    rows.forEach(row => lines.push(row.map(escapeCsv).join(',')));
+    const csv = lines.join('\n');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="leaderboard.csv"');
+    res.send(csv);
+  } catch (err) {
+    console.error('CSV export error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.get('/api/leaderboard', async (req, res) => {
   try {
     const now = Date.now();

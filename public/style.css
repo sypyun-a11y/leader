@@ -99,6 +99,20 @@ h1 {
   transition: all 0.2s;
 }
 .refresh-btn:hover { background: var(--neon); color: var(--bg); border-color: var(--neon); }
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.9rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  text-decoration: none;
+  transition: all 0.2s;
+  font-size: 0.8rem;
+}
+.export-btn:hover { background: var(--neon); color: var(--bg); border-color: var(--neon); }
 .refresh-btn.loading .refresh-icon { display: inline-block; animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
