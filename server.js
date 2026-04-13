@@ -218,9 +218,20 @@ function normalizeRow(row, index) {
   const nameKey = findKey('name', 'student_name', 'user_name', '이름', 'username');
   const positionKey = findKey('position', 'track', 'course', '포지션', '트랙', 'camp', 'cohort');
   const dobKey = findKey('date_of_birth', 'birth_date', 'dob', '생년월일');
-  const phoneKey = findKey('phone', 'phone_number', 'mobile', 'handphone', '전화번호');
+  const phoneKey = findKey(
+    'phone', 'phone_number', 'mobile', 'mobile_phone', 'phone_no', 'mobile_no',
+    'handphone', 'tel', 'tel_number', 'contact', 'contact_number',
+    '전화번호', '핸드폰', '휴대폰', '연락처'
+  );
   const rawDob = dobKey ? String(row[dobKey] || '').trim() : null;
-  const rawPhone = phoneKey ? String(row[phoneKey] || '').trim() : null;
+  let rawPhone = phoneKey ? String(row[phoneKey] || '').trim() : null;
+  if (!rawPhone) {
+    const fallbackPhoneEntry = Object.entries(row).find(([key, value]) => {
+      return /tel|phone|hp|mobile|contact|핸드폰|휴대폰|연락처|번호/i.test(key) &&
+        String(value || '').replace(/\D/g, '').length >= 8;
+    });
+    rawPhone = fallbackPhoneEntry ? String(fallbackPhoneEntry[1] || '').trim() : null;
+  }
 
   return {
     id: idKey ? row[idKey] : index,
