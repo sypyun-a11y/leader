@@ -158,6 +158,7 @@ h1 {
   padding: 0.9rem 1rem;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
   margin-top: 0.85rem;
+  transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
 }
 .roulette-result strong {
   display: block;
@@ -169,6 +170,11 @@ h1 {
   margin: 0;
   line-height: 1.6;
   font-weight: 700;
+}
+.roulette-result.active {
+  transform: translateY(-4px);
+  border-color: #0ea5e9;
+  box-shadow: 0 12px 28px rgba(14,165,233,0.18);
 }
 .fortune-card p {
   color: var(--text-muted);

@@ -102,10 +102,12 @@ function getRouletteTask(index) {
 function resetRoulette() {
   const wheel = document.getElementById('roulette-wheel');
   const card = document.querySelector('.fortune-card');
+  const result = document.getElementById('roulette-result');
   const message = document.getElementById('roulette-message');
-  if (!wheel || !card || !message) return;
+  if (!wheel || !card || !result || !message) return;
   wheel.style.transform = 'rotate(0deg)';
   card.classList.remove('opened');
+  result.classList.remove('active');
   message.textContent = '룰렛을 돌려 미션을 받아보세요.';
 }
 
@@ -114,20 +116,23 @@ function spinRoulette() {
   const message = document.getElementById('roulette-message');
   const btn = document.getElementById('roulette-spin-btn');
   const card = document.querySelector('.fortune-card');
-  if (!wheel || !message || !btn || !card) return;
+  const result = document.getElementById('roulette-result');
+  if (!wheel || !message || !btn || !card || !result) return;
   if (btn.disabled) return;
 
   const total = ROULETTE_TASKS.length;
   const selected = Math.floor(Math.random() * total);
   const anglePer = 360 / total;
   const spins = 6;
-  const target = spins * 360 + selected * anglePer + anglePer / 2;
+  const offset = 90 - anglePer / 2;
+  const target = spins * 360 + selected * anglePer + offset;
 
   btn.disabled = true;
   const prevLabel = btn.textContent;
   btn.textContent = '돌리는 중...';
   message.textContent = '룰렛을 돌리는 중입니다.';
   card.classList.remove('opened');
+  result.classList.remove('active');
 
   void wheel.offsetWidth;
 
@@ -135,7 +140,8 @@ function spinRoulette() {
 
   setTimeout(() => {
     card.classList.add('opened');
-    message.textContent = `선택된 미션: ${getRouletteTask(selected)}`;
+    result.classList.add('active');
+    message.textContent = `짠! 오늘 미션: ${getRouletteTask(selected)}`;
     btn.disabled = false;
     btn.textContent = prevLabel;
   }, 4200);
@@ -143,11 +149,9 @@ function spinRoulette() {
 
 function initFortuneCookie() {
   const btn = document.getElementById('roulette-spin-btn');
-  const wheel = document.getElementById('roulette-wheel');
-  if (!btn || !wheel) return;
+  if (!btn) return;
   resetRoulette();
   btn.addEventListener('click', spinRoulette);
-  wheel.addEventListener('click', spinRoulette);
 }
 
 function renderPodium(top3) {
