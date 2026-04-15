@@ -98,15 +98,49 @@ function getFortuneMessage() {
   return FORTUNE_MESSAGES[Math.floor(Math.random() * FORTUNE_MESSAGES.length)];
 }
 
+function resetFortuneCookie() {
+  const card = document.querySelector('.fortune-card');
+  const slip = document.querySelector('.fortune-slip');
+  const message = document.getElementById('fortune-message');
+  if (!card || !slip || !message) return;
+  card.classList.remove('opened');
+  slip.textContent = '포춘쿠키를 까서 확인하세요.';
+  message.textContent = '포춘쿠키를 까서 결과를 확인해 보세요.';
+}
+
 function setFortuneMessage() {
-  const el = document.getElementById('fortune-message');
-  if (el) el.textContent = getFortuneMessage();
+  const card = document.querySelector('.fortune-card');
+  const slip = document.querySelector('.fortune-slip');
+  const message = document.getElementById('fortune-message');
+  const btn = document.getElementById('fortune-refresh-btn');
+  if (!card || !slip || !message || !btn) return;
+
+  const newMessage = getFortuneMessage();
+  btn.disabled = true;
+  const prevLabel = btn.textContent;
+  btn.textContent = '깨는 중...';
+  card.classList.remove('opened');
+  slip.textContent = '';
+  message.textContent = '포춘쿠키를 까는 중...';
+
+  void card.offsetWidth;
+
+  setTimeout(() => {
+    card.classList.add('opened');
+    slip.textContent = newMessage;
+    message.textContent = newMessage;
+  }, 180);
+
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.textContent = prevLabel;
+  }, 700);
 }
 
 function initFortuneCookie() {
   const btn = document.getElementById('fortune-refresh-btn');
   if (!btn) return;
-  setFortuneMessage();
+  resetFortuneCookie();
   btn.addEventListener('click', setFortuneMessage);
 }
 
