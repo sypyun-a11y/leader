@@ -127,15 +127,18 @@ async function loadStudentData(name) {
 
     const revenueSubmissions = document.getElementById('student-revenue-submissions');
     revenueSubmissions.innerHTML = data.revenueSubmissions.length
-      ? data.revenueSubmissions.map(item => `
+      ? data.revenueSubmissions.map(item => {
+        const amountLabel = Number(item.amount) === 0 ? '룰렛 인증' : `${Number(item.amount).toLocaleString()}원`;
+        return `
         <div class="submission-card">
           <div>
-            <div class="submission-title">${escHtml(item.student_name)} - ${Number(item.amount).toLocaleString()}원</div>
+            <div class="submission-title">${escHtml(item.student_name)} - ${escHtml(amountLabel)}</div>
             <div class="field-note">상태: ${escHtml(item.status)}</div>
           </div>
           <div class="submission-meta">${formatTime(item.submitted_at)}</div>
         </div>
-      `).join('')
+      `;
+      }).join('')
       : '<p class="field-note">제출된 수익 인증이 없습니다.</p>';
     showStudentContent();
   } catch (err) {
@@ -196,14 +199,19 @@ async function handleRevenueSubmit(event) {
   const form = event.target;
   const submitBtn = form.querySelector('button[type="submit"]');
   const formData = new FormData(form);
+  const certType = formData.get('certType') || 'revenue';
+  if (certType === 'roulette') {
+    formData.set('amount', '0');
+  }
   submitBtn.disabled = true;
   submitBtn.textContent = '제출 중...';
   try {
     const res = await fetch('/api/earnings/submit', { method: 'POST', body: formData });
     const json = await res.json();
-    if (!res.ok || !json.success) throw new Error(json.error || '수익 인증 제출에 실패했습니다.');
-    alert('수익 인증 제출이 완료되었습니다. 관리자 승인을 기다려주세요.');
+    if (!res.ok || !json.success) throw new Error(json.error || '인증 제출에 실패했습니다.');
+    alert('인증 제출이 완료되었습니다. 관리자 승인을 기다려주세요.');
     form.reset();
+    toggleRevenueFields();
     loadStudentData(getStudentNameFromPath());
   } catch (err) {
     alert(err.message);
@@ -213,13 +221,36 @@ async function handleRevenueSubmit(event) {
   }
 }
 
+function toggleRevenueFields() {
+  const selectedType = document.querySelector('input[name="certType"]:checked')?.value || 'revenue';
+  const revenueRow = document.getElementById('revenue-amount-row');
+  if (revenueRow) {
+    revenueRow.style.display = selectedType === 'revenue' ? '' : 'none';
+    const amountInput = revenueRow.querySelector('input[name="amount"]');
+    if (amountInput) {
+      amountInput.required = selectedType === 'revenue';
+    }
+  }
+}
+
 const loginForm = document.getElementById('student-login-form');
 if (loginForm) {
   loginForm.addEventListener('submit', handleStudentLogin);
 }
 
-document.getElementById('student-mission-form').addEventListener('submit', handleMissionSubmit);
-document.getElementById('student-revenue-form').addEventListener('submit', handleRevenueSubmit);
+const missionForm = document.getElementById('student-mission-form');
+const revenueForm = document.getElementById('student-revenue-form');
+
+if (missionForm) {
+  missionForm.addEventListener('submit', handleMissionSubmit);
+}
+if (revenueForm) {
+  revenueForm.addEventListener('submit', handleRevenueSubmit);
+  document.querySelectorAll('input[name="certType"]').forEach(radio => {
+    radio.addEventListener('change', toggleRevenueFields);
+  });
+  toggleRevenueFields();
+}
 
 const studentName = getStudentNameFromPath();
 if (studentName) {

@@ -642,6 +642,30 @@ select {
 .summary-grid { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .summary-grid div { padding: 0.75rem 0.9rem; background: var(--bg2); border-radius: 16px; }
 .summary-grid strong { display: block; margin-bottom: 0.3rem; color: var(--text-muted); }
+.toggle-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.toggle-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.65rem 0.9rem;
+  background: var(--surface2);
+  cursor: pointer;
+  color: var(--text);
+}
+.toggle-option input {
+  accent-color: var(--neon);
+}
+.toggle-option input:checked + span {
+  font-weight: 700;
+  color: var(--neon);
+}
 .mission-list,
 .submission-list { display: grid; gap: 0.85rem; }
 .mission-card,

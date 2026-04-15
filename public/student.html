@@ -89,16 +89,29 @@
     </section>
 
     <section class="section-card">
-      <h2>수익 인증 제출</h2>
+      <h2>찰칵📸 인증해주세요</h2>
+      <p class="field-note">수익화 현황, 룰렛 미션 달성 인증을 해주세요!</p>
       <form id="student-revenue-form" class="form-grid">
         <input type="hidden" name="studentName" id="studentNameInput2" />
+        <div class="toggle-row">
+          <label class="toggle-option">
+            <input type="radio" name="certType" value="revenue" checked />
+            <span>수익 인증</span>
+          </label>
+          <label class="toggle-option">
+            <input type="radio" name="certType" value="roulette" />
+            <span>룰렛 인증</span>
+          </label>
+        </div>
+        <div id="revenue-amount-row">
+          <label>
+            금액
+            <input name="amount" class="text-input" type="number" min="0" placeholder="원" required />
+          </label>
+        </div>
         <label>
-          금액
-          <input name="amount" class="text-input" type="number" min="0" placeholder="원" required />
-        </label>
-        <label>
-          영수증 첨부
-          <input name="receipt" class="file-input" type="file" accept="image/*" />
+          인증 첨부
+          <input name="receipt" class="file-input" type="file" accept="image/*" required />
         </label>
         <button type="submit" class="primary-btn">제출하기</button>
       </form>
