@@ -115,6 +115,7 @@ function setFortuneMessage() {
   const btn = document.getElementById('fortune-refresh-btn');
   if (!card || !slip || !message || !btn) return;
 
+  if (btn.disabled) return;
   const newMessage = getFortuneMessage();
   btn.disabled = true;
   const prevLabel = btn.textContent;
@@ -139,9 +140,11 @@ function setFortuneMessage() {
 
 function initFortuneCookie() {
   const btn = document.getElementById('fortune-refresh-btn');
-  if (!btn) return;
+  const cookie = document.getElementById('fortune-cookie');
+  if (!btn || !cookie) return;
   resetFortuneCookie();
   btn.addEventListener('click', setFortuneMessage);
+  cookie.addEventListener('click', setFortuneMessage);
 }
 
 function renderPodium(top3) {
