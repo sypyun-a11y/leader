@@ -151,6 +151,25 @@ h1 {
   font-size: 1.05rem;
   margin-top: 0.2rem;
 }
+.roulette-result {
+  background: #ffffff;
+  border: 1px solid rgba(14,165,233,0.14);
+  border-radius: 18px;
+  padding: 0.9rem 1rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
+  margin-top: 0.85rem;
+}
+.roulette-result strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #0f172a;
+}
+.roulette-result p {
+  color: #334155;
+  margin: 0;
+  line-height: 1.6;
+  font-weight: 700;
+}
 .fortune-card p {
   color: var(--text-muted);
   line-height: 1.55;
@@ -177,19 +196,7 @@ h1 {
   box-shadow: inset 0 0 0 2px rgba(255,255,255,0.4), 0 18px 35px rgba(15,23,42,0.15);
   position: relative;
   transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
-  cursor: pointer;
-}
-.roulette-label {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 90px;
-  color: #1f2937;
-  font-size: 0.67rem;
-  font-weight: 700;
-  text-align: center;
-  line-height: 1.2;
-  transform-origin: 0 0;
+  cursor: default;
 }
 .roulette-pointer {
   position: absolute;
