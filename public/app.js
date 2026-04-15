@@ -86,6 +86,30 @@ function renderMvp(mvp) {
   `;
 }
 
+const FORTUNE_MESSAGES = [
+  '오늘의 선택이 내일의 경쟁력을 만듭니다.',
+  '작은 실천 하나가 큰 기회를 불러옵니다.',
+  '동료와 함께하면 더 빠르게 정상에 도달합니다.',
+  '긍정의 에너지가 더 많은 기록을 쌓게 해 줍니다.',
+  '새로운 도전에 행운이 함께합니다.'
+];
+
+function getFortuneMessage() {
+  return FORTUNE_MESSAGES[Math.floor(Math.random() * FORTUNE_MESSAGES.length)];
+}
+
+function setFortuneMessage() {
+  const el = document.getElementById('fortune-message');
+  if (el) el.textContent = getFortuneMessage();
+}
+
+function initFortuneCookie() {
+  const btn = document.getElementById('fortune-refresh-btn');
+  if (!btn) return;
+  setFortuneMessage();
+  btn.addEventListener('click', setFortuneMessage);
+}
+
 function renderPodium(top3) {
   const el = document.getElementById('podium');
   const section = document.getElementById('podium-section');
@@ -300,4 +324,5 @@ function initStudentModal() {
 let currentStudentName = null;
 
 loadLeaderboard();
+initFortuneCookie();
 initStudentModal();
