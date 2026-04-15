@@ -86,65 +86,68 @@ function renderMvp(mvp) {
   `;
 }
 
-const FORTUNE_MESSAGES = [
-  '오늘의 선택이 내일의 경쟁력을 만듭니다.',
-  '작은 실천 하나가 큰 기회를 불러옵니다.',
-  '동료와 함께하면 더 빠르게 정상에 도달합니다.',
-  '긍정의 에너지가 더 많은 기록을 쌓게 해 줍니다.',
-  '새로운 도전에 행운이 함께합니다.'
+const ROULETTE_TASKS = [
+  '하루에 숏폼 제작 2편하고 인증하기 (인증하면 포인트가 두배)',
+  '외주대행 실습해보기',
+  '강의 중 어려웠던 부분 지금 바로 강사님께 여쭤보기',
+  '과제 제출 인증하기',
+  '실시간 세션 참석 인증하기',
+  '강의 수강 인증하기'
 ];
 
-function getFortuneMessage() {
-  return FORTUNE_MESSAGES[Math.floor(Math.random() * FORTUNE_MESSAGES.length)];
+function getRouletteTask(index) {
+  return ROULETTE_TASKS[index % ROULETTE_TASKS.length];
 }
 
-function resetFortuneCookie() {
+function resetRoulette() {
+  const wheel = document.getElementById('roulette-wheel');
   const card = document.querySelector('.fortune-card');
-  const slip = document.querySelector('.fortune-slip');
-  const message = document.getElementById('fortune-message');
-  if (!card || !slip || !message) return;
+  const message = document.getElementById('roulette-message');
+  if (!wheel || !card || !message) return;
+  wheel.style.transform = 'rotate(0deg)';
   card.classList.remove('opened');
-  slip.textContent = '포춘쿠키를 까서 확인하세요.';
-  message.textContent = '포춘쿠키를 까서 결과를 확인해 보세요.';
+  message.textContent = '룰렛을 돌려 미션을 받아보세요.';
 }
 
-function setFortuneMessage() {
+function spinRoulette() {
+  const wheel = document.getElementById('roulette-wheel');
+  const message = document.getElementById('roulette-message');
+  const btn = document.getElementById('roulette-spin-btn');
   const card = document.querySelector('.fortune-card');
-  const slip = document.querySelector('.fortune-slip');
-  const message = document.getElementById('fortune-message');
-  const btn = document.getElementById('fortune-refresh-btn');
-  if (!card || !slip || !message || !btn) return;
-
+  if (!wheel || !message || !btn || !card) return;
   if (btn.disabled) return;
-  const newMessage = getFortuneMessage();
+
+  const total = ROULETTE_TASKS.length;
+  const selected = Math.floor(Math.random() * total);
+  const anglePer = 360 / total;
+  const spins = 6;
+  const target = spins * 360 + selected * anglePer + anglePer / 2;
+
   btn.disabled = true;
   const prevLabel = btn.textContent;
-  btn.textContent = '깨는 중...';
+  btn.textContent = '돌리는 중...';
+  message.textContent = '룰렛을 돌리는 중입니다.';
   card.classList.remove('opened');
-  slip.textContent = '';
-  message.textContent = '포춘쿠키를 까는 중...';
 
-  void card.offsetWidth;
+  void wheel.offsetWidth;
+
+  wheel.style.transform = `rotate(${target}deg)`;
 
   setTimeout(() => {
     card.classList.add('opened');
-    slip.textContent = newMessage;
-    message.textContent = newMessage;
-  }, 180);
-
-  setTimeout(() => {
+    message.textContent = `선택된 미션: ${getRouletteTask(selected)}`;
     btn.disabled = false;
     btn.textContent = prevLabel;
-  }, 700);
+  }, 4200);
 }
 
 function initFortuneCookie() {
-  const btn = document.getElementById('fortune-refresh-btn');
-  const cookie = document.getElementById('fortune-cookie');
-  if (!btn || !cookie) return;
-  resetFortuneCookie();
-  btn.addEventListener('click', setFortuneMessage);
-  cookie.addEventListener('click', setFortuneMessage);
+  const btn = document.getElementById('roulette-spin-btn');
+  const wheel = document.getElementById('roulette-wheel');
+  if (!btn || !wheel) return;
+  resetRoulette();
+  btn.addEventListener('click', spinRoulette);
+  wheel.addEventListener('click', spinRoulette);
 }
 
 function renderPodium(top3) {

@@ -26,17 +26,22 @@
   <main class="main">
     <section class="podium-section" id="podium-section">
       <div class="podium-layout">
-        <aside class="fortune-card">
-          <div class="fortune-icon">🥠</div>
-          <strong>오늘의 포춘쿠키</strong>
-          <div class="fortune-cookie" id="fortune-cookie">
-            <div class="fortune-shell fortune-shell-top"></div>
-            <div class="fortune-shell fortune-shell-bottom"></div>
-            <div class="fortune-crack"></div>
-            <div class="fortune-slip">포춘쿠키를 까서 확인하세요.</div>
+        <aside class="fortune-card roulette-card">
+          <div class="fortune-icon">🎯</div>
+          <strong>오늘의 미션 룰렛</strong>
+          <div class="roulette-board">
+            <div class="roulette-wheel" id="roulette-wheel" aria-label="미션 룰렛">
+              <span class="roulette-label" style="transform: rotate(30deg) translate(88px) rotate(-30deg);">1. 하루에 숏폼 제작 2편하고 인증하기</span>
+              <span class="roulette-label" style="transform: rotate(90deg) translate(88px) rotate(-90deg);">2. 외주대행 실습해보기</span>
+              <span class="roulette-label" style="transform: rotate(150deg) translate(88px) rotate(-150deg);">3. 강의 중 어려웠던 부분 지금 바로 강사님께 여쭤보기</span>
+              <span class="roulette-label" style="transform: rotate(210deg) translate(88px) rotate(-210deg);">4. 과제 제출 인증하기</span>
+              <span class="roulette-label" style="transform: rotate(270deg) translate(88px) rotate(-270deg);">5. 실시간 세션 참석 인증하기</span>
+              <span class="roulette-label" style="transform: rotate(330deg) translate(88px) rotate(-330deg);">6. 강의 수강 인증하기</span>
+            </div>
+            <div class="roulette-pointer"></div>
           </div>
-          <p id="fortune-message">포춘쿠키를 까서 결과를 확인해 보세요.</p>
-          <button id="fortune-refresh-btn" type="button" class="secondary-btn">쿠키 깨기</button>
+          <button id="roulette-spin-btn" type="button" class="secondary-btn">룰렛 돌리기</button>
+          <p id="roulette-message">룰렛을 돌려 미션을 받아보세요.</p>
         </aside>
         <div class="podium-wrapper" id="podium"></div>
       </div>
