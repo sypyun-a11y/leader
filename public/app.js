@@ -104,8 +104,11 @@ function resetRoulette() {
   const card = document.querySelector('.fortune-card');
   const result = document.getElementById('roulette-result');
   const message = document.getElementById('roulette-message');
-  if (!wheel || !card || !result || !message) return;
+  const pointer = document.querySelector('.roulette-pointer');
+  if (!wheel || !card || !result || !message || !pointer) return;
   wheel.style.transform = 'rotate(0deg)';
+  wheel.classList.remove('spinning');
+  pointer.classList.remove('spin');
   card.classList.remove('opened');
   result.classList.remove('active');
   message.textContent = '룰렛을 돌려 미션을 받아보세요.';
@@ -117,13 +120,14 @@ function spinRoulette() {
   const btn = document.getElementById('roulette-spin-btn');
   const card = document.querySelector('.fortune-card');
   const result = document.getElementById('roulette-result');
-  if (!wheel || !message || !btn || !card || !result) return;
+  const pointer = document.querySelector('.roulette-pointer');
+  if (!wheel || !message || !btn || !card || !result || !pointer) return;
   if (btn.disabled) return;
 
   const total = ROULETTE_TASKS.length;
   const selected = Math.floor(Math.random() * total);
   const anglePer = 360 / total;
-  const spins = 6;
+  const spins = 8;
   const offset = 90 - anglePer / 2;
   const target = spins * 360 + selected * anglePer + offset;
 
@@ -133,6 +137,8 @@ function spinRoulette() {
   message.textContent = '룰렛을 돌리는 중입니다.';
   card.classList.remove('opened');
   result.classList.remove('active');
+  wheel.classList.add('spinning');
+  pointer.classList.add('spin');
 
   void wheel.offsetWidth;
 
@@ -141,9 +147,11 @@ function spinRoulette() {
   setTimeout(() => {
     card.classList.add('opened');
     result.classList.add('active');
-    message.textContent = `짠! 오늘 미션: ${getRouletteTask(selected)}`;
+    message.textContent = getRouletteTask(selected);
     btn.disabled = false;
     btn.textContent = prevLabel;
+    wheel.classList.remove('spinning');
+    pointer.classList.remove('spin');
   }, 4200);
 }
 
