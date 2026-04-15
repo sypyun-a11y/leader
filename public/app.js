@@ -99,6 +99,16 @@ function getRouletteTask(index) {
   return ROULETTE_TASKS[index % ROULETTE_TASKS.length];
 }
 
+function getStoredSpin() {
+  const index = window.localStorage.getItem('rouletteTaskIndex');
+  return index === null ? null : Number(index);
+}
+
+function setStoredSpin(index) {
+  window.localStorage.setItem('rouletteTaskIndex', String(index));
+  window.localStorage.setItem('rouletteSpun', '1');
+}
+
 function resetRoulette() {
   const wheel = document.getElementById('roulette-wheel');
   const card = document.querySelector('.fortune-card');
@@ -148,10 +158,11 @@ function spinRoulette() {
     card.classList.add('opened');
     result.classList.add('active');
     message.textContent = getRouletteTask(selected);
-    btn.disabled = false;
-    btn.textContent = prevLabel;
+    btn.disabled = true;
+    btn.textContent = '이미 돌렸습니다';
     wheel.classList.remove('spinning');
     pointer.classList.remove('spin');
+    setStoredSpin(selected);
   }, 4200);
 }
 
@@ -160,6 +171,23 @@ function initFortuneCookie() {
   if (!btn) return;
   resetRoulette();
   btn.addEventListener('click', spinRoulette);
+
+  const stored = getStoredSpin();
+  if (stored !== null) {
+    const wheel = document.getElementById('roulette-wheel');
+    const message = document.getElementById('roulette-message');
+    const result = document.getElementById('roulette-result');
+    if (wheel && message && result) {
+      const anglePer = 360 / ROULETTE_TASKS.length;
+      const offset = 90 - anglePer / 2;
+      wheel.style.transform = `rotate(${stored * anglePer + offset}deg)`;
+      wheel.classList.remove('spinning');
+      result.classList.add('active');
+      message.textContent = getRouletteTask(stored);
+    }
+    btn.disabled = true;
+    btn.textContent = '이미 돌렸습니다';
+  }
 }
 
 function renderPodium(top3) {
